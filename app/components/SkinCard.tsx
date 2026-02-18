@@ -1,40 +1,99 @@
+"use client";
+
+import { useState } from "react";
+import Badge from "./Badge";
+
 type SkinCardProps = {
-  name: string; // "AK-47 | Redline"
-  weapon: string; // "AK-47"
-  rarity?: string; // "Classified"
-  imageUrl: string; // image link
-  price?: string; // "$12.34"
+  weapon: string;
+  name: string;
+  rarityLabel: string;
+  rarityColor: string;
+  hasStatTrak: boolean;
+  statTrakColor?: string;
+  imageUrl?: string; // make optional for now
+
+  priceRange?: string;
+  statTrakPriceRange?: string;
+  sourceLabel?: string;
+  sourceImageUrl?: string;
 };
 
 export default function SkinCard({
-  name,
   weapon,
-  rarity,
+  name,
+  rarityLabel,
+  rarityColor,
+  hasStatTrak,
+  statTrakColor = "#f89406",
   imageUrl,
-  price,
+  priceRange,
+  statTrakPriceRange,
+  sourceLabel,
+  sourceImageUrl,
 }: SkinCardProps) {
+  const [imgOk, setImgOk] = useState(true);
+
   return (
-    <div className="group rounded-xl border border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900 transition overflow-hidden">
-      <div className="p-4">
-        <div className="text-xs text-zinc-400">{weapon}</div>
-        <div className="mt-1 font-medium text-white line-clamp-1">{name}</div>
-        {rarity && <div className="mt-1 text-xs text-zinc-400">{rarity}</div>}
-      </div>
+    <div className="rounded-xl border border-zinc-800 bg-[#1f2937] overflow-hidden shadow-sm">
+      <div className="relative px-5 pt-4 pb-6">
+        <div className="text-center text-sm text-zinc-300">{weapon}</div>
+        <div className="text-center text-lg font-semibold text-white leading-tight">
+          {name}
+        </div>
 
-      <div className="px-4 pb-4">
-        <div className="rounded-lg bg-zinc-950/40 border border-zinc-800 flex items-center justify-center h-40 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={imageUrl}
-            alt={name}
-            className="h-32 object-contain group-hover:scale-[1.03] transition"
+        {/* Badges */}
+        <Badge text={rarityLabel} bgColor={rarityColor} topClass="top-[78px]" />
+
+        {hasStatTrak && (
+          <Badge
+            text="StatTrak Available"
+            bgColor={statTrakColor}
+            topClass="top-[110px]"
           />
+        )}
+
+        {/* Image area (hide alt text on error) */}
+        <div className="mt-20 flex items-center justify-center h-[190px]">
+          {imageUrl && imgOk ? (
+            <img
+              src={imageUrl}
+              alt=""
+              className="max-h-[170px] object-contain"
+              onError={() => setImgOk(false)}
+            />
+          ) : (
+            <div className="h-[170px] w-full rounded-lg bg-zinc-950/30 border border-zinc-800" />
+          )}
         </div>
 
-        <div className="mt-3 flex items-center justify-between">
-          <div className="text-sm text-zinc-300">Median</div>
-          <div className="text-sm font-semibold text-white">{price ?? "—"}</div>
+        {/* Prices */}
+        <div className="mt-4 text-center">
+          {priceRange && (
+            <div className="text-white font-semibold">{priceRange}</div>
+          )}
+          {statTrakPriceRange && (
+            <div className="text-[#f89406] font-semibold">
+              {statTrakPriceRange}
+            </div>
+          )}
         </div>
+
+        {/* Case / Collection */}
+        {sourceLabel && (
+          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-zinc-200">
+            {sourceImageUrl ? (
+              <img
+                src={sourceImageUrl}
+                alt=""
+                className="h-5 w-5 object-contain"
+              />
+            ) : (
+              <div className="h-5 w-5 rounded bg-zinc-800" />
+            )}
+
+            <span className="font-medium">{sourceLabel}</span>
+          </div>
+        )}
       </div>
     </div>
   );
