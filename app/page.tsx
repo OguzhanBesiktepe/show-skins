@@ -27,7 +27,7 @@ export default async function Home() {
 
   function cleanSkinName(name: string) {
     return name
-      .replace(/^★\s*/, "") // remove leading star
+      .replace(/^★\s*/, "") //remove star prefix if it exists (some skins have it, some don't)
       .replace(/^StatTrak™\s*/, "") // remove StatTrak if now first
       .replace(/^★\s*StatTrak™\s*/, "") // safety fallback (both together)
       .trim();
@@ -38,8 +38,6 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold">ShowSkins</h1>
-
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {firstSkins.map((skin: any) => (
             <SkinCard
