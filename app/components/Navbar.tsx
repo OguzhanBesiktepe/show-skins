@@ -1,8 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
+import NavDropdown from "./NavDropdown";
 
 const navLink =
   "flex items-center gap-1 text-sm text-zinc-200 hover:text-white transition-colors";
+
+const pistols = [
+  { label: "CZ75-Auto", slug: "cz75-auto" },
+  { label: "Desert Eagle", slug: "desert-eagle" },
+  { label: "Dual Berettas", slug: "dual-berettas" },
+  { label: "Five-SeveN", slug: "five-seven" },
+  { label: "Glock-18", slug: "glock-18" },
+  { label: "P2000", slug: "p2000" },
+  { label: "P250", slug: "p250" },
+  { label: "R8 Revolver", slug: "r8-revolver" },
+  { label: "Tec-9", slug: "tec-9" },
+  { label: "USP-S", slug: "usp-s" },
+  { label: "Zeus x27", slug: "zeus-x27" },
+];
 
 export default function Navbar() {
   return (
@@ -22,9 +37,7 @@ export default function Navbar() {
 
         {/* Menu Bar */}
         <div className="flex items-center gap-6">
-          <Link className={navLink} href="/browse/pistols">
-            Pistols <span className="text-zinc-400">▾</span>
-          </Link>
+          <NavDropdown title="Pistols" href="/browse/pistols" items={pistols} />
 
           <Link className={navLink} href="/browse/mid-tier">
             Mid-Tier <span className="text-zinc-400">▾</span>
