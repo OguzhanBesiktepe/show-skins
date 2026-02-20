@@ -26,7 +26,11 @@ export default async function Home() {
   // Remove Redundant "Statrak™" prefix from skin name if it exists
 
   function cleanSkinName(name: string) {
-    return name.replace(/^StatTrak™\s*/, "");
+    return name
+      .replace(/^★\s*/, "") // remove leading star
+      .replace(/^StatTrak™\s*/, "") // remove StatTrak if now first
+      .replace(/^★\s*StatTrak™\s*/, "") // safety fallback (both together)
+      .trim();
   }
 
   const firstSkins = pickRandom(skins, 8);
