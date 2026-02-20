@@ -23,6 +23,12 @@ export default async function Home() {
     return copy.slice(0, n);
   }
 
+  // Remove Redundant "Statrak™" prefix from skin name if it exists
+
+  function cleanSkinName(name: string) {
+    return name.replace(/^StatTrak™\s*/, "");
+  }
+
   const firstSkins = pickRandom(skins, 8);
 
   return (
@@ -35,7 +41,7 @@ export default async function Home() {
             <SkinCard
               key={skin.id}
               weapon={skin.weapon?.name ?? "Unknown"}
-              name={skin.name}
+              name={cleanSkinName(skin.name)}
               rarityLabel={skin.rarity?.name ?? "Unknown"}
               rarityColor={skin.rarity?.color ?? "#888888"}
               hasStatTrak={skin.stattrak ?? false}
