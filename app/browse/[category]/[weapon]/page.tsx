@@ -1,6 +1,16 @@
 import SkinCard from "@/app/components/SkinCard";
 
-async function getSkins() {
+type Skin = {
+  id: string;
+  name: string;
+  image: string;
+  stattrak?: boolean;
+  weapon?: { name?: string };
+  rarity?: { name?: string; color?: string };
+  collection?: { name?: string; image?: string };
+};
+
+async function getSkins(): Promise<Skin[]> {
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
     { cache: "no-store" },
@@ -9,7 +19,6 @@ async function getSkins() {
 }
 
 function slugToWeaponName(slug: string) {
-  // quick mapping for special names; you can expand as needed
   const map: Record<string, string> = {
     "cz75-auto": "CZ75-Auto",
     "desert-eagle": "Desert Eagle",
@@ -29,26 +38,29 @@ function slugToWeaponName(slug: string) {
 export default async function WeaponPage({
   params,
 }: {
-  params: { category: string; weapon: string };
+  params: Promise<{ category: string; weapon: string }>;
 }) {
+  const resolvedParams = await params;
+  const { category, weapon } = resolvedParams;
+
   const skins = await getSkins();
-  const weaponName = slugToWeaponName(params.weapon);
+  const weaponName = slugToWeaponName(weapon);
 
   const filtered = skins.filter(
-    (s: any) =>
-      (s.weapon?.name ?? "").toLowerCase() === weaponName.toLowerCase(),
+    (s) => (s.weapon?.name ?? "").toLowerCase() === weaponName.toLowerCase(),
   );
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold">{weaponName} Skins</h1>
+
         <p className="mt-2 text-zinc-400">
           Showing {Math.min(filtered.length, 48)} of {filtered.length}
         </p>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filtered.slice(0, 48).map((skin: any) => (
+          {filtered.slice(0, 48).map((skin) => (
             <SkinCard
               key={skin.id}
               weapon={skin.weapon?.name ?? "Unknown"}

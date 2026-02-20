@@ -1,4 +1,4 @@
-import SkinCard from "./components/SkinCard";
+import SkinCard from "@/app/components/SkinCard";
 
 async function getSkins() {
   const res = await fetch(
