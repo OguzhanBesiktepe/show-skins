@@ -18,6 +18,26 @@ async function getSkins(): Promise<Skin[]> {
   return res.json();
 }
 
+function normalizeBaseName(name: string) {
+  return (
+    name
+      // remove star, stattrak, souvenir (any combo at start)
+      .replace(/^(★\s*)?(StatTrak™\s*)?(Souvenir\s*)?/i, "")
+      // remove wear suffix
+      .replace(
+        /\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/i,
+        "",
+      )
+      .trim()
+  );
+}
+
+function getBaseKey(s: Skin) {
+  const weapon = (s.weapon?.name ?? "").toLowerCase().trim();
+  const base = normalizeBaseName(s.name).toLowerCase();
+  return `${weapon}|${base}`;
+}
+
 function slugToWeaponName(slug: string) {
   const map: Record<string, string> = {
     "cz75-auto": "CZ75-Auto",
@@ -41,7 +61,7 @@ export default async function WeaponPage({
   params: Promise<{ category: string; weapon: string }>;
 }) {
   const resolvedParams = await params;
-  const { category, weapon } = resolvedParams;
+  const { weapon } = resolvedParams;
 
   const skins = await getSkins();
   const weaponName = slugToWeaponName(weapon);
@@ -50,21 +70,26 @@ export default async function WeaponPage({
     (s) => (s.weapon?.name ?? "").toLowerCase() === weaponName.toLowerCase(),
   );
 
+  // keep ONE entry per base skin
+  const unique = Array.from(
+    new Map(filtered.map((s) => [getBaseKey(s), s])).values(),
+  );
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold">{weaponName} Skins</h1>
 
         <p className="mt-2 text-zinc-400">
-          Showing {Math.min(filtered.length, 48)} of {filtered.length}
+          Showing {Math.min(unique.length, 48)} of {unique.length}
         </p>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filtered.slice(0, 48).map((skin) => (
+          {unique.slice(0, 48).map((skin) => (
             <SkinCard
-              key={skin.id}
+              key={getBaseKey(skin)} // base key is stable across wears
               weapon={skin.weapon?.name ?? "Unknown"}
-              name={skin.name}
+              name={normalizeBaseName(skin.name)} // removes (Factory New) etc
               rarityLabel={skin.rarity?.name ?? "Unknown"}
               rarityColor={skin.rarity?.color ?? "#888888"}
               hasStatTrak={skin.stattrak ?? false}

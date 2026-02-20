@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import NavDropdown from "./NavDropdown";
+import { getWeapons } from "./lib/getWeapons";
 
 const navLink =
   "flex items-center gap-1 text-sm text-zinc-200 hover:text-white transition-colors";
@@ -35,12 +36,20 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* Menu Bar */}
+        {/* Menu Bar Options */}
         <div className="flex items-center gap-6">
           <NavDropdown title="Pistols" href="/browse/pistols" items={pistols} />
 
-          <Link className={navLink} href="/browse/mid-tier">
-            Mid-Tier <span className="text-zinc-400">▾</span>
+          <Link className={navLink} href="/browse/SMGs">
+            SMGs <span className="text-zinc-400">▾</span>
+          </Link>
+
+          <Link className={navLink} href="/browse/LMGs">
+            LMGs <span className="text-zinc-400">▾</span>
+          </Link>
+
+          <Link className={navLink} href="/browse/shotguns">
+            Shotguns <span className="text-zinc-400">▾</span>
           </Link>
 
           <Link className={navLink} href="/browse/rifles">
