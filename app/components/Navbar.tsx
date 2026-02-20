@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import NavDropdown from "./NavDropdown";
-import { getWeapons } from "./lib/getWeapons";
+import { getWeapons } from "@/app/getWeapons";
 
 const navLink =
   "flex items-center gap-1 text-sm text-zinc-200 hover:text-white transition-colors";
