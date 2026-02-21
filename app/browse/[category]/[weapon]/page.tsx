@@ -92,7 +92,7 @@ export default async function WeaponPage({
   const pageItems = unique.slice(start, start + PER_PAGE);
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className="min-h-screen  text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold">{weaponName} Skins</h1>
 

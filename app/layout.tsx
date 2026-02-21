@@ -29,12 +29,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-zinc-950 text-white min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-black text-white min-h-screen flex flex-col`}
       >
         <Navbar />
 
-        {/* This makes content expand and pushes footer to bottom */}
-        <div className="flex-1">{children}</div>
+        {/* Main content area with gradient */}
+        <div className="flex-1 bg-[#0f172a]">{children}</div>
 
         <Footer />
       </body>

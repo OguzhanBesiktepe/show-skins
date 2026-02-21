@@ -58,7 +58,7 @@ export default async function Home({
   const pageItems = pickRandomUnique(skins, PER_PAGE);
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className="min-h-screen  text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {pageItems.map((skin) => (
