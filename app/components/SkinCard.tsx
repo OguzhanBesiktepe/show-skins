@@ -53,12 +53,12 @@ export default function SkinCard({
         )}
 
         {/* Image area (hide alt text on error) */}
-        <div className="mt-20 flex items-center justify-center h-[190px]">
+        <div className="mt-20 flex items-center justify-center h-[200px]">
           {imageUrl && imgOk ? (
             <img
               src={imageUrl}
               alt=""
-              className="max-h-[170px] object-contain"
+              className="max-h-[190px] object-contain"
               onError={() => setImgOk(false)}
             />
           ) : (
