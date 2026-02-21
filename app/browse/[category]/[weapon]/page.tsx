@@ -1,4 +1,5 @@
 import SkinCard from "@/app/components/SkinCard";
+import Pagination from "@/app/components/Pagination";
 
 type Skin = {
   id: string;
@@ -55,13 +56,20 @@ function slugToWeaponName(slug: string) {
   return map[slug] ?? slug;
 }
 
+const PER_PAGE = 48;
+
 export default async function WeaponPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string; weapon: string }>;
+  searchParams?: { page?: string };
 }) {
   const resolvedParams = await params;
   const { weapon } = resolvedParams;
+
+  const pageParam = searchParams?.page;
+  const currentPage = Math.max(1, Number(pageParam) || 1);
 
   const skins = await getSkins();
   const weaponName = slugToWeaponName(weapon);
@@ -75,21 +83,29 @@ export default async function WeaponPage({
     new Map(filtered.map((s) => [getBaseKey(s), s])).values(),
   );
 
+  // pagination over the deduped list
+  const total = unique.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  const safePage = Math.min(currentPage, totalPages);
+
+  const start = (safePage - 1) * PER_PAGE;
+  const pageItems = unique.slice(start, start + PER_PAGE);
+
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold">{weaponName} Skins</h1>
 
         <p className="mt-2 text-zinc-400">
-          Showing {Math.min(unique.length, 48)} of {unique.length}
+          Showing {Math.min(start + PER_PAGE, total)} of {total}
         </p>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {unique.slice(0, 48).map((skin) => (
+          {pageItems.map((skin) => (
             <SkinCard
-              key={getBaseKey(skin)} // base key is stable across wears
+              key={getBaseKey(skin)}
               weapon={skin.weapon?.name ?? "Unknown"}
-              name={normalizeBaseName(skin.name)} // removes (Factory New) etc
+              name={normalizeBaseName(skin.name)}
               rarityLabel={skin.rarity?.name ?? "Unknown"}
               rarityColor={skin.rarity?.color ?? "#888888"}
               hasStatTrak={skin.stattrak ?? false}
@@ -98,6 +114,11 @@ export default async function WeaponPage({
               sourceImageUrl={skin.collection?.image}
             />
           ))}
+        </div>
+
+        {/* ✅ pagination bar at bottom, centered */}
+        <div className="mt-10 flex justify-center">
+          <Pagination currentPage={safePage} totalPages={totalPages} />
         </div>
       </div>
     </main>
