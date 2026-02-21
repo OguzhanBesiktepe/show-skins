@@ -20,7 +20,7 @@ export default function NavDropdown({
     <div className="relative group">
       <Link
         href={href}
-        className="flex items-center gap-1 text-sm text-zinc-200 hover:text-white transition-colors"
+        className="flex items-center gap-1 text-base font-semibold tracking-wide text-zinc-200 hover:text-amber-400 transition-colors"
       >
         {title} <span className="text-zinc-400">▾</span>
       </Link>

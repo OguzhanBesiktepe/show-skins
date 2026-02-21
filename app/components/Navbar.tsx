@@ -1,10 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import NavDropdown from "./NavDropdown";
-import { getWeapons } from "@/app/getWeapons";
 
 const navLink =
-  "flex items-center gap-1 text-sm text-zinc-200 hover:text-white transition-colors";
+  "flex items-center gap-1 text-base font-semibold tracking-wide text-zinc-200 hover:text-amber-400 transition-colors";
 
 const pistols = [
   { label: "CZ75-Auto", slug: "cz75-auto" },
@@ -22,9 +21,9 @@ const pistols = [
 
 export default function Navbar() {
   return (
-    <nav className="bg-zinc-900 border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
-        {/* ShowSkins Logo */}
+    <nav className="bg-[#973535] border-b border-zinc-800">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-8">
+        {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.png"
@@ -36,8 +35,8 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* Menu Bar Options */}
-        <div className="flex items-center gap-6">
+        {/* Navigation */}
+        <div className="flex items-center gap-8">
           <NavDropdown title="Pistols" href="/browse/pistols" items={pistols} />
 
           <Link className={navLink} href="/browse/SMGs">
@@ -65,10 +64,10 @@ export default function Navbar() {
           </Link>
         </div>
 
-        {/* Spacer pushes search to the right */}
+        {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Search Bar (UI frontend implementation currently) */}
+        {/* Search */}
         <div className="w-[420px] max-w-[45vw]">
           <div className="flex items-center gap-2 rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2">
             <span className="text-zinc-400">⌕</span>

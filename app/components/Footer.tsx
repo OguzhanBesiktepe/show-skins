@@ -2,7 +2,7 @@ import { Github, Linkedin } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-zinc-800 bg-zinc-900 text-zinc-400">
+    <footer className="border-t border-zinc-800 bg-[#973535] text-zinc-400">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           {/* Left — Logo */}
@@ -14,7 +14,7 @@ export default function Footer() {
             />
           </div>
           <div className="flex flex-col md:flex-row items-center gap-8">
-            <p className="text-xs text-zinc-600 mt-4">
+            <p className="text-xs text-zinc-300 mt-4">
               © {new Date().getFullYear()} ShowSkins. All rights reserved.
             </p>
           </div>
