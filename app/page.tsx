@@ -25,12 +25,18 @@ export default async function Home() {
 
   // Remove Redundant "Statrak™" prefix from skin name if it exists
 
-  function cleanSkinName(name: string) {
-    return name
-      .replace(/^★\s*/, "") //remove star prefix if it exists (some skins have it, some don't)
-      .replace(/^StatTrak™\s*/, "") // remove StatTrak if now first
-      .replace(/^★\s*StatTrak™\s*/, "") // safety fallback (both together)
-      .trim();
+  function normalizeBaseName(name: string) {
+    return (
+      name
+        // remove star, stattrak, souvenir (any combo at start)
+        .replace(/^(★\s*)?(StatTrak™\s*)?(Souvenir\s*)?/i, "")
+        // remove wear suffix
+        .replace(
+          /\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/i,
+          "",
+        )
+        .trim()
+    );
   }
 
   const firstSkins = pickRandom(skins, 8);
@@ -43,7 +49,7 @@ export default async function Home() {
             <SkinCard
               key={skin.id}
               weapon={skin.weapon?.name ?? "Unknown"}
-              name={cleanSkinName(skin.name)}
+              name={normalizeBaseName(skin.name)}
               rarityLabel={skin.rarity?.name ?? "Unknown"}
               rarityColor={skin.rarity?.color ?? "#888888"}
               hasStatTrak={skin.stattrak ?? false}
