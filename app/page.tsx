@@ -28,7 +28,6 @@ function cleanSkinName(name: string) {
     .trim();
 }
 
-// Random unique pick (no duplicates within the page)
 function pickRandomUnique<T>(arr: T[], n: number) {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -43,14 +42,13 @@ const PER_PAGE = 48;
 export default async function Home({
   searchParams,
 }: {
-  searchParams?: { page?: string };
+  searchParams?: Promise<{ page?: string }>;
 }) {
-  const pageParam = searchParams?.page;
-  const currentPage = Math.max(1, Number(pageParam) || 1);
+  const resolvedSearchParams = await searchParams;
+  const currentPage = Math.max(1, Number(resolvedSearchParams?.page) || 1);
 
   const skins = await getSkins();
 
-  // totalPages is just for UI in "random browse" mode
   const total = skins.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -58,7 +56,7 @@ export default async function Home({
   const pageItems = pickRandomUnique(skins, PER_PAGE);
 
   return (
-    <main className="min-h-screen  text-white">
+    <main className="min-h-screen text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {pageItems.map((skin) => (
