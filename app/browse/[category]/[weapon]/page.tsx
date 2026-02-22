@@ -20,17 +20,13 @@ async function getSkins(): Promise<Skin[]> {
 }
 
 function normalizeBaseName(name: string) {
-  return (
-    name
-      // remove star, stattrak, souvenir (any combo at start)
-      .replace(/^(★\s*)?(StatTrak™\s*)?(Souvenir\s*)?/i, "")
-      // remove wear suffix
-      .replace(
-        /\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/i,
-        "",
-      )
-      .trim()
-  );
+  return name
+    .replace(/^(★\s*)?(StatTrak™\s*)?(Souvenir\s*)?/i, "")
+    .replace(
+      /\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/i,
+      "",
+    )
+    .trim();
 }
 
 function getBaseKey(s: Skin) {
@@ -63,13 +59,12 @@ export default async function WeaponPage({
   searchParams,
 }: {
   params: Promise<{ category: string; weapon: string }>;
-  searchParams?: { page?: string };
+  searchParams?: Promise<{ page?: string }>;
 }) {
-  const resolvedParams = await params;
-  const { weapon } = resolvedParams;
+  const { weapon } = await params;
+  const resolvedSearchParams = await searchParams;
 
-  const pageParam = searchParams?.page;
-  const currentPage = Math.max(1, Number(pageParam) || 1);
+  const currentPage = Math.max(1, Number(resolvedSearchParams?.page) || 1);
 
   const skins = await getSkins();
   const weaponName = slugToWeaponName(weapon);
@@ -78,12 +73,10 @@ export default async function WeaponPage({
     (s) => (s.weapon?.name ?? "").toLowerCase() === weaponName.toLowerCase(),
   );
 
-  // keep ONE entry per base skin
   const unique = Array.from(
     new Map(filtered.map((s) => [getBaseKey(s), s])).values(),
   );
 
-  // pagination over the deduped list
   const total = unique.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
@@ -91,13 +84,16 @@ export default async function WeaponPage({
   const start = (safePage - 1) * PER_PAGE;
   const pageItems = unique.slice(start, start + PER_PAGE);
 
+  const from = total === 0 ? 0 : start + 1;
+  const to = Math.min(start + pageItems.length, total);
+
   return (
-    <main className="min-h-screen  text-white">
+    <main className="min-h-screen text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold">{weaponName} Skins</h1>
 
         <p className="mt-2 text-zinc-400">
-          Showing {Math.min(start + PER_PAGE, total)} of {total}
+          Showing {from} - {to}
         </p>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -116,7 +112,6 @@ export default async function WeaponPage({
           ))}
         </div>
 
-        {/* ✅ pagination bar at bottom, centered */}
         <div className="mt-10 flex justify-center">
           <Pagination currentPage={safePage} totalPages={totalPages} />
         </div>

@@ -21,7 +21,7 @@ const pistols = [
 
 export default function Navbar() {
   return (
-    <nav className="bg-[#973535] border-b border-zinc-800">
+    <nav className="bg-[#1d1d1d] border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-8">
         {/* Logo */}
         <Link href="/" className="flex items-center">
