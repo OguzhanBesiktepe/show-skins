@@ -35,21 +35,12 @@ function getBaseKey(s: Skin) {
   return `${weapon}|${base}`;
 }
 
-function slugToWeaponName(slug: string) {
-  const map: Record<string, string> = {
-    "cz75-auto": "CZ75-Auto",
-    "desert-eagle": "Desert Eagle",
-    "dual-berettas": "Dual Berettas",
-    "five-seven": "Five-SeveN",
-    "glock-18": "Glock-18",
-    p2000: "P2000",
-    p250: "P250",
-    "r8-revolver": "R8 Revolver",
-    "tec-9": "Tec-9",
-    "usp-s": "USP-S",
-    "zeus-x27": "Zeus x27",
-  };
-  return map[slug] ?? slug;
+function slugifyWeaponName(name: string) {
+  return name
+    .replace(/^★\s*/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 const PER_PAGE = 48;
@@ -67,11 +58,12 @@ export default async function WeaponPage({
   const currentPage = Math.max(1, Number(resolvedSearchParams?.page) || 1);
 
   const skins = await getSkins();
-  const weaponName = slugToWeaponName(weapon);
 
   const filtered = skins.filter(
-    (s) => (s.weapon?.name ?? "").toLowerCase() === weaponName.toLowerCase(),
+    (s) => slugifyWeaponName(s.weapon?.name ?? "") === weapon,
   );
+
+  const weaponName = filtered[0]?.weapon?.name ?? weapon;
 
   const unique = Array.from(
     new Map(filtered.map((s) => [getBaseKey(s), s])).values(),
