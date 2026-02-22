@@ -2,95 +2,125 @@ import Image from "next/image";
 import Link from "next/link";
 import NavDropdown from "./NavDropdown";
 
-const pistols = [
-  { label: "CZ75-Auto", slug: "cz75-auto" },
-  { label: "Desert Eagle", slug: "desert-eagle" },
-  { label: "Dual Berettas", slug: "dual-berettas" },
-  { label: "Five-SeveN", slug: "five-seven" },
-  { label: "Glock-18", slug: "glock-18" },
-  { label: "P2000", slug: "p2000" },
-  { label: "P250", slug: "p250" },
-  { label: "R8 Revolver", slug: "r8-revolver" },
-  { label: "Tec-9", slug: "tec-9" },
-  { label: "USP-S", slug: "usp-s" },
-  { label: "Zeus x27", slug: "zeus-x27" },
-];
+type Skin = {
+  id: string;
+  name: string;
+  image: string;
+  weapon?: { name?: string };
+};
 
-const smgs = [
-  { label: "MAC-10", slug: "mac-10" },
-  { label: "MP5-SD", slug: "mp5-sd" },
-  { label: "MP7", slug: "mp7" },
-  { label: "MP9", slug: "mp9" },
-  { label: "P90", slug: "p90" },
-  { label: "PP-Bizon", slug: "pp-bizon" },
-  { label: "UMP-45", slug: "ump-45" },
-];
+async function getSkins(): Promise<Skin[]> {
+  const res = await fetch(
+    "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
+    { cache: "no-store" },
+  );
+  return res.json();
+}
 
-const lmgs = [
-  { label: "M249", slug: "m249" },
-  { label: "Negev", slug: "negev" },
-];
+function slugifyWeaponName(name: string) {
+  return name
+    .replace(/^★\s*/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
-const shotguns = [
-  { label: "MAG-7", slug: "mag-7" },
-  { label: "Nova", slug: "nova" },
-  { label: "Sawed-Off", slug: "sawed-off" },
-  { label: "XM1014", slug: "xm1014" },
-];
+function getWeaponIcon(skins: Skin[], weaponName: string): string | undefined {
+  return skins.find(
+    (s) => s.weapon?.name?.toLowerCase() === weaponName.toLowerCase(),
+  )?.image;
+}
 
-const rifles = [
-  { label: "AK-47", slug: "ak-47" },
-  { label: "AUG", slug: "aug" },
-  { label: "AWP", slug: "awp" },
-  { label: "FAMAS", slug: "famas" },
-  { label: "G3SG1", slug: "g3sg1" },
-  { label: "Galil AR", slug: "galil-ar" },
-  { label: "M4A1-S", slug: "m4a1-s" },
-  { label: "M4A4", slug: "m4a4" },
-  { label: "SCAR-20", slug: "scar-20" },
-  { label: "SG 553", slug: "sg-553" },
-  { label: "SSG 08", slug: "ssg-08" },
-];
+export default async function Navbar() {
+  const skins = await getSkins();
 
-const knives = [
-  { label: "Bayonet", slug: "bayonet" },
-  { label: "Bowie Knife", slug: "bowie-knife" },
-  { label: "Butterfly Knife", slug: "butterfly-knife" },
-  { label: "Classic Knife", slug: "classic-knife" },
-  { label: "Falchion Knife", slug: "falchion-knife" },
-  { label: "Flip Knife", slug: "flip-knife" },
-  { label: "Gut Knife", slug: "gut-knife" },
-  { label: "Huntsman Knife", slug: "huntsman-knife" },
-  { label: "Karambit", slug: "karambit" },
-  { label: "Kukri Knife", slug: "kukri-knife" },
-  { label: "M9 Bayonet", slug: "m9-bayonet" },
-  { label: "Navaja Knife", slug: "navaja-knife" },
-  { label: "Nomad Knife", slug: "nomad-knife" },
-  { label: "Paracord Knife", slug: "paracord-knife" },
-  { label: "Shadow Daggers", slug: "shadow-daggers" },
-  { label: "Skeleton Knife", slug: "skeleton-knife" },
-  { label: "Stiletto Knife", slug: "stiletto-knife" },
-  { label: "Survival Knife", slug: "survival-knife" },
-  { label: "Talon Knife", slug: "talon-knife" },
-  { label: "Ursus Knife", slug: "ursus-knife" },
-];
+  function buildItems(weapons: string[]) {
+    return weapons.map((name) => ({
+      label: name,
+      slug: slugifyWeaponName(name),
+      iconUrl: getWeaponIcon(skins, name),
+    }));
+  }
 
-const gloves = [
-  { label: "Bloodhound Gloves", slug: "bloodhound-gloves" },
-  { label: "Broken Fang Gloves", slug: "broken-fang-gloves" },
-  { label: "Driver Gloves", slug: "driver-gloves" },
-  { label: "Hand Wraps", slug: "hand-wraps" },
-  { label: "Hydra Gloves", slug: "hydra-gloves" },
-  { label: "Moto Gloves", slug: "moto-gloves" },
-  { label: "Specialist Gloves", slug: "specialist-gloves" },
-  { label: "Sport Gloves", slug: "sport-gloves" },
-];
+  const pistols = buildItems([
+    "CZ75-Auto",
+    "Desert Eagle",
+    "Dual Berettas",
+    "Five-SeveN",
+    "Glock-18",
+    "P2000",
+    "P250",
+    "R8 Revolver",
+    "Tec-9",
+    "USP-S",
+    "Zeus x27",
+  ]);
 
-export default function Navbar() {
+  const smgs = buildItems([
+    "MAC-10",
+    "MP5-SD",
+    "MP7",
+    "MP9",
+    "P90",
+    "PP-Bizon",
+    "UMP-45",
+  ]);
+
+  const lmgs = buildItems(["M249", "Negev"]);
+
+  const shotguns = buildItems(["MAG-7", "Nova", "Sawed-Off", "XM1014"]);
+
+  const rifles = buildItems([
+    "AK-47",
+    "AUG",
+    "AWP",
+    "FAMAS",
+    "G3SG1",
+    "Galil AR",
+    "M4A1-S",
+    "M4A4",
+    "SCAR-20",
+    "SG 553",
+    "SSG 08",
+  ]);
+
+  const knives = buildItems([
+    "Bayonet",
+    "Bowie Knife",
+    "Butterfly Knife",
+    "Classic Knife",
+    "Falchion Knife",
+    "Flip Knife",
+    "Gut Knife",
+    "Huntsman Knife",
+    "Karambit",
+    "Kukri Knife",
+    "M9 Bayonet",
+    "Navaja Knife",
+    "Nomad Knife",
+    "Paracord Knife",
+    "Shadow Daggers",
+    "Skeleton Knife",
+    "Stiletto Knife",
+    "Survival Knife",
+    "Talon Knife",
+    "Ursus Knife",
+  ]);
+
+  const gloves = buildItems([
+    "Bloodhound Gloves",
+    "Broken Fang Gloves",
+    "Driver Gloves",
+    "Hand Wraps",
+    "Hydra Gloves",
+    "Moto Gloves",
+    "Specialist Gloves",
+    "Sport Gloves",
+  ]);
+
   return (
     <nav className="bg-[#b47e1a] border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-8">
-        {/* Logo */}
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.png"
@@ -102,7 +132,6 @@ export default function Navbar() {
           />
         </Link>
 
-        {/* Navigation */}
         <div className="flex items-center gap-8">
           <NavDropdown title="Pistols" href="/browse/pistols" items={pistols} />
           <NavDropdown title="SMGs" href="/browse/smgs" items={smgs} />
@@ -117,10 +146,8 @@ export default function Navbar() {
           <NavDropdown title="Gloves" href="/browse/gloves" items={gloves} />
         </div>
 
-        {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Search */}
         <div className="w-[420px] max-w-[45vw]">
           <div className="flex items-center gap-2 rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2">
             <span className="text-zinc-400">⌕</span>
