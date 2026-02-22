@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import NavDropdown from "./NavDropdown";
+import SearchBar from "./SearchBar";
 
 type Skin = {
   id: string;
@@ -148,16 +149,8 @@ export default async function Navbar() {
 
         <div className="flex-1" />
 
-        <div className="w-[420px] max-w-[45vw]">
-          <div className="flex items-center gap-2 rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2">
-            <span className="text-zinc-400">⌕</span>
-            <input
-              className="w-full bg-transparent outline-none text-sm text-zinc-100 placeholder:text-zinc-400"
-              placeholder="Search..."
-              aria-label="Search skins"
-            />
-          </div>
-        </div>
+        {/* Search */}
+        <SearchBar skins={skins} />
       </div>
     </nav>
   );
