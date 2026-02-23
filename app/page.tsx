@@ -14,18 +14,25 @@ type Skin = {
 async function getSkins(): Promise<Skin[]> {
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
-    { cache: "no-store" },
+    { cache: "no-store" }
   );
   return res.json();
 }
 
-function cleanSkinName(name: string) {
+function normalizeBaseName(name: string) {
   return name
-    .replace(/^★\s*/, "")
-    .replace(/^StatTrak™\s*/, "")
-    .replace(/^Souvenir\s+/i, "")
-    .replace(/^★\s*StatTrak™\s*/, "")
+    .replace(/^(★\s*)?(StatTrak™\s*)?(Souvenir\s*)?/i, "")
+    .replace(
+      /\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/i,
+      ""
+    )
     .trim();
+}
+
+function getBaseKey(s: Skin) {
+  const weapon = (s.weapon?.name ?? "").toLowerCase().trim();
+  const base = normalizeBaseName(s.name).toLowerCase();
+  return `${weapon}|${base}`;
 }
 
 function pickRandomUnique<T>(arr: T[], n: number) {
@@ -49,11 +56,20 @@ export default async function Home({
 
   const skins = await getSkins();
 
-  const total = skins.length;
+  // Deduplicate first to remove condition variants
+  const unique = Array.from(
+    new Map(skins.map((s) => [getBaseKey(s), s])).values()
+  );
+
+  // Then randomly shuffle the deduplicated list
+  const shuffled = pickRandomUnique(unique, unique.length);
+
+  const total = shuffled.length;
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
   const safePage = Math.min(currentPage, totalPages);
 
-  const pageItems = pickRandomUnique(skins, PER_PAGE);
+  const start = (safePage - 1) * PER_PAGE;
+  const pageItems = shuffled.slice(start, start + PER_PAGE);
 
   return (
     <main className="min-h-screen text-white">
@@ -68,9 +84,9 @@ export default async function Home({
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {pageItems.map((skin) => (
             <SkinCard
-              key={skin.id}
+              key={getBaseKey(skin)}
               weapon={skin.weapon?.name ?? "Unknown"}
-              name={cleanSkinName(skin.name)}
+              name={normalizeBaseName(skin.name)}
               rarityLabel={skin.rarity?.name ?? "Unknown"}
               rarityColor={skin.rarity?.color ?? "#888888"}
               hasStatTrak={skin.stattrak ?? false}
