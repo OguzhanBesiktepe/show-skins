@@ -35,6 +35,71 @@ function getBaseKey(s: Skin) {
   return `${weapon}|${base}`;
 }
 
+function slugifyWeaponName(name: string) {
+  return name
+    .replace(/^★\s*/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function slugifySkinName(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getCategoryFromWeapon(weaponName: string): string {
+  const name = weaponName.toLowerCase();
+  if (
+    name.includes("knife") ||
+    name.includes("karambit") ||
+    name.includes("bayonet") ||
+    name.includes("dagger")
+  )
+    return "knives";
+  if (name.includes("gloves") || name.includes("wraps")) return "gloves";
+  const map: Record<string, string> = {
+    "cz75-auto": "pistols",
+    "desert eagle": "pistols",
+    "dual berettas": "pistols",
+    "five-seven": "pistols",
+    "glock-18": "pistols",
+    p2000: "pistols",
+    p250: "pistols",
+    "r8 revolver": "pistols",
+    "tec-9": "pistols",
+    "usp-s": "pistols",
+    "zeus x27": "pistols",
+    "mac-10": "smgs",
+    "mp5-sd": "smgs",
+    mp7: "smgs",
+    mp9: "smgs",
+    p90: "smgs",
+    "pp-bizon": "smgs",
+    "ump-45": "smgs",
+    m249: "lmgs",
+    negev: "lmgs",
+    "mag-7": "shotguns",
+    nova: "shotguns",
+    "sawed-off": "shotguns",
+    xm1014: "shotguns",
+    "ak-47": "rifles",
+    aug: "rifles",
+    awp: "rifles",
+    famas: "rifles",
+    g3sg1: "rifles",
+    "galil ar": "rifles",
+    "m4a1-s": "rifles",
+    m4a4: "rifles",
+    "scar-20": "rifles",
+    "sg 553": "rifles",
+    "ssg 08": "rifles",
+  };
+  return map[name] ?? "rifles";
+}
+
 function pickRandomUnique<T>(arr: T[], n: number) {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -56,12 +121,10 @@ export default async function Home({
 
   const skins = await getSkins();
 
-  // Deduplicate first to remove condition variants
   const unique = Array.from(
     new Map(skins.map((s) => [getBaseKey(s), s])).values()
   );
 
-  // Then randomly shuffle the deduplicated list
   const shuffled = pickRandomUnique(unique, unique.length);
 
   const total = shuffled.length;
@@ -82,18 +145,24 @@ export default async function Home({
         </h1>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {pageItems.map((skin) => (
-            <SkinCard
-              key={getBaseKey(skin)}
-              weapon={skin.weapon?.name ?? "Unknown"}
-              name={normalizeBaseName(skin.name)}
-              rarityLabel={skin.rarity?.name ?? "Unknown"}
-              rarityColor={skin.rarity?.color ?? "#888888"}
-              hasStatTrak={skin.stattrak ?? false}
-              imageUrl={skin.image}
-              sourceLabel={skin.collection?.name}
-            />
-          ))}
+          {pageItems.map((skin) => {
+            const weaponSlug = slugifyWeaponName(skin.weapon?.name ?? "");
+            const skinSlug = slugifySkinName(normalizeBaseName(skin.name));
+            const category = getCategoryFromWeapon(skin.weapon?.name ?? "");
+            return (
+              <SkinCard
+                key={getBaseKey(skin)}
+                href={`/browse/${category}/${weaponSlug}/${skinSlug}`}
+                weapon={skin.weapon?.name ?? "Unknown"}
+                name={normalizeBaseName(skin.name)}
+                rarityLabel={skin.rarity?.name ?? "Unknown"}
+                rarityColor={skin.rarity?.color ?? "#888888"}
+                hasStatTrak={skin.stattrak ?? false}
+                imageUrl={skin.image}
+                sourceLabel={skin.collection?.name}
+              />
+            );
+          })}
         </div>
 
         <div className="mt-10 flex justify-center">
