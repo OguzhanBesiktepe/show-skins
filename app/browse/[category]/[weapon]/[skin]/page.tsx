@@ -23,6 +23,8 @@ type CSFloatListing = {
   };
 };
 
+//CSGO API integration (used for skin data and images)
+
 async function getSkins(): Promise<Skin[]> {
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
@@ -31,14 +33,22 @@ async function getSkins(): Promise<Skin[]> {
   return res.json();
 }
 
+//CSFloat API integration (used for pricing, and in-game inspect feature)
+
 async function getCSFloatData(
   marketHashName: string,
 ): Promise<CSFloatListing | null> {
   try {
-    const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(marketHashName)}&limit=1&sort_by=lowest_price`;
-    const res = await fetch(url, { next: { revalidate: 3600 } });
+    const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(marketHashName)}&limit=5&sort_by=lowest_price`;
+    const res = await fetch(url, {
+      headers: {
+        Authorization: process.env.CSFLOAT_API_KEY ?? "",
+      },
+      next: { revalidate: 3600 },
+    });
     const data = await res.json();
-    return data?.[0] ?? null;
+    console.log("CSFloat raw response:", JSON.stringify(data, null, 2));
+    return data?.data?.[0] ?? null;
   } catch {
     return null;
   }
@@ -135,7 +145,7 @@ export default async function SkinDetailPage({
 
   const floatData = await getCSFloatData(marketHashName);
   const scmPrice = floatData?.item?.scm?.price;
-  const inspectLink = matched.inspect_link;
+  const inspectLink = floatData?.item?.inspect_link;
 
   const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(marketHashName)}`;
 

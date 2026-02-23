@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# csfloat API key (can opt-in for committing if needed)
+.env.local
