@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 type Skin = {
   id: string;
@@ -6,35 +7,38 @@ type Skin = {
   description?: string;
   image: string;
   stattrak?: boolean;
+  inspect_link?: string;
   weapon?: { name?: string };
   rarity?: { name?: string; color?: string };
   collection?: { name?: string; image?: string };
 };
 
-type SteamPrice = {
-  success: boolean;
-  lowest_price?: string;
-  median_price?: string;
-  volume?: string;
+type CSFloatListing = {
+  price: number;
+  item: {
+    scm: { price: number; volume: number };
+    float_value: number;
+    wear_name: string;
+    inspect_link: string;
+  };
 };
 
 async function getSkins(): Promise<Skin[]> {
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
-    { cache: "no-store" }
+    { cache: "no-store" },
   );
   return res.json();
 }
 
-async function getSteamPrice(
-  marketHashName: string
-): Promise<SteamPrice | null> {
+async function getCSFloatData(
+  marketHashName: string,
+): Promise<CSFloatListing | null> {
   try {
-    const url = `https://steamcommunity.com/market/priceoverview/?appid=730&currency=1&market_hash_name=${encodeURIComponent(
-      marketHashName
-    )}`;
+    const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(marketHashName)}&limit=1&sort_by=lowest_price`;
     const res = await fetch(url, { next: { revalidate: 3600 } });
-    return res.json();
+    const data = await res.json();
+    return data?.[0] ?? null;
   } catch {
     return null;
   }
@@ -45,7 +49,7 @@ function normalizeBaseName(name: string) {
     .replace(/^(★\s*)?(StatTrak™\s*)?(Souvenir\s*)?/i, "")
     .replace(
       /\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/i,
-      ""
+      "",
     )
     .trim();
 }
@@ -65,7 +69,6 @@ function slugifySkinName(name: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-// Splits description into main text and italic flavour quote
 function parseDescription(raw: string) {
   const cleaned = raw.replace(/\\n/g, "\n").replace(/\\/g, "");
   const parts = cleaned.split(/\n+/);
@@ -86,6 +89,10 @@ function parseDescription(raw: string) {
   return { main: main.join(" "), flavour: flavour.join(" ") };
 }
 
+function formatPrice(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
 export default async function SkinDetailPage({
   params,
 }: {
@@ -97,7 +104,7 @@ export default async function SkinDetailPage({
   const matched = skins.find(
     (s) =>
       slugifyWeaponName(s.weapon?.name ?? "") === weapon &&
-      slugifySkinName(normalizeBaseName(s.name)) === skinSlug
+      slugifySkinName(normalizeBaseName(s.name)) === skinSlug,
   );
 
   if (!matched) {
@@ -109,8 +116,22 @@ export default async function SkinDetailPage({
   }
 
   const displayName = normalizeBaseName(matched.name);
-  const marketName = `${matched.weapon?.name} | ${displayName} (Field-Tested)`;
-  const price = await getSteamPrice(marketName);
+
+  // Fetch CSFloat data for Field-Tested as reference
+
+  const skinOnlyName = displayName.includes("|")
+    ? displayName.split("|").slice(1).join("|").trim()
+    : displayName;
+
+  const marketHashName = `${matched.weapon?.name} | ${skinOnlyName} (Field-Tested)`;
+
+  const floatData = await getCSFloatData(marketHashName);
+  const scmPrice = floatData?.item?.scm?.price;
+  const inspectLink = floatData?.item?.inspect_link ?? matched.inspect_link;
+
+  // Steam Market URL
+  const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(marketHashName)}`;
+
   const description = matched.description
     ? parseDescription(matched.description)
     : null;
@@ -141,14 +162,56 @@ export default async function SkinDetailPage({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Image */}
-          <div className="flex items-center justify-center bg-[#1f2937] rounded-xl border border-zinc-800 p-8">
-            <Image
-              src={matched.image}
-              alt={displayName}
-              width={400}
-              height={300}
-              className="object-contain"
-            />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-center bg-[#1f2937] rounded-xl border border-zinc-800 p-8">
+              <Image
+                src={matched.image}
+                alt={displayName}
+                width={400}
+                height={300}
+                className="object-contain"
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              <Link
+                href={steamMarketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-[#1b2838] hover:bg-[#2a475e] text-white font-semibold px-5 py-3 rounded-lg border border-zinc-600 transition-colors"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.37l3.03-6.27a3.5 3.5 0 1 1 4.04-4.04l6.27-3.03C19.8 3.44 15.3 0 12 0z" />
+                </svg>
+                View on Steam Market
+              </Link>
+
+              {inspectLink && (
+                <Link
+                  href={inspectLink}
+                  className="flex items-center justify-center gap-2 bg-[#4caf50]/10 hover:bg-[#4caf50]/20 text-[#4caf50] font-semibold px-5 py-3 rounded-lg border border-[#4caf50]/30 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                  Inspect in Game
+                </Link>
+              )}
+            </div>
           </div>
 
           {/* Details */}
@@ -162,34 +225,24 @@ export default async function SkinDetailPage({
               </div>
             )}
 
-            {/* Steam Price */}
+            {/* Price */}
             <div className="bg-[#1f2937] rounded-xl border border-zinc-800 p-5">
               <h2 className="text-lg font-semibold mb-3">Market Price</h2>
-              {price?.success && (price.lowest_price || price.median_price) ? (
+              {scmPrice ? (
                 <div className="flex flex-col gap-1">
-                  {price.lowest_price && (
-                    <p className="text-zinc-300">
-                      Lowest:{" "}
-                      <span className="text-white font-semibold">
-                        {price.lowest_price}
-                      </span>
-                    </p>
-                  )}
-                  {price.median_price && (
-                    <p className="text-zinc-300">
-                      Median:{" "}
-                      <span className="text-white font-semibold">
-                        {price.median_price}
-                      </span>
-                    </p>
-                  )}
-                  {price.volume && (
+                  <p className="text-zinc-300">
+                    Steam Market Price:{" "}
+                    <span className="text-white font-semibold text-xl">
+                      {formatPrice(scmPrice)}
+                    </span>
+                  </p>
+                  {floatData?.item?.volume !== undefined && (
                     <p className="text-zinc-400 text-sm mt-1">
-                      {price.volume} sold recently
+                      {floatData.item.scm.volume} recent sales
                     </p>
                   )}
                   <p className="text-zinc-500 text-xs mt-2">
-                    Field-Tested reference price via Steam Market
+                    Field-Tested reference price via Steam Community Market
                   </p>
                 </div>
               ) : (
