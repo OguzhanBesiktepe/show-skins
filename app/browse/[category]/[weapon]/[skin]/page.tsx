@@ -123,7 +123,17 @@ export default async function SkinDetailPage({
     ? displayName.split("|").slice(1).join("|").trim()
     : displayName;
 
-  const marketHashName = `${matched.weapon?.name} | ${skinOnlyName} (Field-Tested)`;
+  const isKnifeOrGlove =
+    matched.weapon?.name?.toLowerCase().includes("knife") ||
+    matched.weapon?.name?.toLowerCase().includes("karambit") ||
+    matched.weapon?.name?.toLowerCase().includes("bayonet") ||
+    matched.weapon?.name?.toLowerCase().includes("dagger") ||
+    matched.weapon?.name?.toLowerCase().includes("gloves") ||
+    matched.weapon?.name?.toLowerCase().includes("wraps");
+
+  const starPrefix = isKnifeOrGlove ? "★ " : "";
+  const wearSuffix = isKnifeOrGlove ? "(Minimal Wear)" : "(Field-Tested)";
+  const marketHashName = `${starPrefix}${matched.weapon?.name} | ${skinOnlyName} ${wearSuffix}`;
 
   const floatData = await getCSFloatData(marketHashName);
   const scmPrice = floatData?.item?.scm?.price;
