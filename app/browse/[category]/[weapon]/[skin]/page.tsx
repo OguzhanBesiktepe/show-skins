@@ -117,8 +117,6 @@ export default async function SkinDetailPage({
 
   const displayName = normalizeBaseName(matched.name);
 
-  // Fetch CSFloat data for Field-Tested as reference
-
   const skinOnlyName = displayName.includes("|")
     ? displayName.split("|").slice(1).join("|").trim()
     : displayName;
@@ -137,9 +135,8 @@ export default async function SkinDetailPage({
 
   const floatData = await getCSFloatData(marketHashName);
   const scmPrice = floatData?.item?.scm?.price;
-  const inspectLink = floatData?.item?.inspect_link ?? matched.inspect_link;
+  const inspectLink = matched.inspect_link;
 
-  // Steam Market URL
   const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(marketHashName)}`;
 
   const description = matched.description
@@ -203,8 +200,10 @@ export default async function SkinDetailPage({
               </Link>
 
               {inspectLink && (
-                <Link
+                <a
                   href={inspectLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-[#4caf50]/10 hover:bg-[#4caf50]/20 text-[#4caf50] font-semibold px-5 py-3 rounded-lg border border-[#4caf50]/30 transition-colors"
                 >
                   <svg
@@ -219,7 +218,7 @@ export default async function SkinDetailPage({
                     <circle cx="12" cy="12" r="3" />
                   </svg>
                   Inspect in Game
-                </Link>
+                </a>
               )}
             </div>
           </div>
@@ -246,13 +245,14 @@ export default async function SkinDetailPage({
                       {formatPrice(scmPrice)}
                     </span>
                   </p>
-                  {floatData?.item?.volume !== undefined && (
+                  {floatData?.item?.scm?.volume !== undefined && (
                     <p className="text-zinc-400 text-sm mt-1">
                       {floatData.item.scm.volume} recent sales
                     </p>
                   )}
                   <p className="text-zinc-500 text-xs mt-2">
-                    Field-Tested reference price via Steam Community Market
+                    {wearSuffix.replace(/[()]/g, "")} reference price via Steam
+                    Community Market
                   </p>
                 </div>
               ) : (
