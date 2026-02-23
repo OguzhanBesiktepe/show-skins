@@ -15,15 +15,17 @@ type Skin = {
 
 type CSFloatListing = {
   price: number;
+  reference: {
+    base_price: number;
+    predicted_price: number;
+    quantity: number;
+  };
   item: {
-    scm: { price: number; volume: number };
     float_value: number;
     wear_name: string;
     inspect_link: string;
   };
 };
-
-//CSGO API integration (used for skin data and images)
 
 async function getSkins(): Promise<Skin[]> {
   const res = await fetch(
@@ -32,8 +34,6 @@ async function getSkins(): Promise<Skin[]> {
   );
   return res.json();
 }
-
-//CSFloat API integration (used for pricing, and in-game inspect feature)
 
 async function getCSFloatData(
   marketHashName: string,
@@ -47,7 +47,6 @@ async function getCSFloatData(
       next: { revalidate: 3600 },
     });
     const data = await res.json();
-    console.log("CSFloat raw response:", JSON.stringify(data, null, 2));
     return data?.data?.[0] ?? null;
   } catch {
     return null;
@@ -144,7 +143,9 @@ export default async function SkinDetailPage({
   const marketHashName = `${starPrefix}${matched.weapon?.name} | ${skinOnlyName} ${wearSuffix}`;
 
   const floatData = await getCSFloatData(marketHashName);
-  const scmPrice = floatData?.item?.scm?.price;
+  const lowestPrice = floatData?.price;
+  const basePrice = floatData?.reference?.base_price;
+  const quantity = floatData?.reference?.quantity;
   const inspectLink = floatData?.item?.inspect_link;
 
   const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(marketHashName)}`;
@@ -247,22 +248,29 @@ export default async function SkinDetailPage({
             {/* Price */}
             <div className="bg-[#1f2937] rounded-xl border border-zinc-800 p-5">
               <h2 className="text-lg font-semibold mb-3">Market Price</h2>
-              {scmPrice ? (
-                <div className="flex flex-col gap-1">
+              {lowestPrice ? (
+                <div className="flex flex-col gap-2">
                   <p className="text-zinc-300">
-                    Steam Market Price:{" "}
+                    Lowest Listing:{" "}
                     <span className="text-white font-semibold text-xl">
-                      {formatPrice(scmPrice)}
+                      {formatPrice(lowestPrice)}
                     </span>
                   </p>
-                  {floatData?.item?.scm?.volume !== undefined && (
-                    <p className="text-zinc-400 text-sm mt-1">
-                      {floatData.item.scm.volume} recent sales
+                  {basePrice && (
+                    <p className="text-zinc-300">
+                      Reference Price:{" "}
+                      <span className="text-white font-semibold">
+                        {formatPrice(basePrice)}
+                      </span>
                     </p>
                   )}
-                  <p className="text-zinc-500 text-xs mt-2">
-                    {wearSuffix.replace(/[()]/g, "")} reference price via Steam
-                    Community Market
+                  {quantity && (
+                    <p className="text-zinc-400 text-sm mt-1">
+                      {quantity} listings available on CSFloat
+                    </p>
+                  )}
+                  <p className="text-zinc-500 text-xs mt-1">
+                    {wearSuffix.replace(/[()]/g, "")} price via CSFloat
                   </p>
                 </div>
               ) : (
