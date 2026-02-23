@@ -122,7 +122,10 @@ export default async function Navbar() {
   return (
     <nav className="bg-[#b47e1a] border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-8">
-        <Link href="/" className="flex items-center">
+        <Link
+          href="/"
+          className="flex items-center hover:scale-120 transform transition duration-200"
+        >
           <Image
             src="/logo.png"
             alt="ShowSkins"
