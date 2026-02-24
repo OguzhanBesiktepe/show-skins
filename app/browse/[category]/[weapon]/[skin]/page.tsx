@@ -30,15 +30,10 @@ type CSFloatListing = {
 async function getSkins(): Promise<Skin[]> {
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
-    { next: { revalidate: 0 } },
+    { next: { revalidate: 86400 } },
   );
   return res.json();
 }
-
-//CSFloat API integration to get pricing and inspect link data for a given skin. We will use the market hash name format: "Weapon | Skin (Wear)".
-// For example: "AK-47 | Redline (Field-Tested)".
-// For knives and gloves, the format is "★ Weapon | Skin (Wear)".
-// For example: "★ Karambit | Doppler (Factory New)".
 
 async function getCSFloatData(
   marketHashName: string,
@@ -49,7 +44,7 @@ async function getCSFloatData(
       headers: {
         Authorization: process.env.CSFLOAT_API_KEY ?? "",
       },
-      next: { revalidate: 0 },
+      next: { revalidate: 3600 },
     });
     const data = await res.json();
     return data?.data?.[0] ?? null;
@@ -218,8 +213,6 @@ export default async function SkinDetailPage({
               {inspectLink && (
                 <a
                   href={inspectLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 bg-[#4caf50]/10 hover:bg-[#4caf50]/20 text-[#4caf50] font-semibold px-5 py-3 rounded-lg border border-[#4caf50]/30 transition-colors"
                 >
                   <svg
