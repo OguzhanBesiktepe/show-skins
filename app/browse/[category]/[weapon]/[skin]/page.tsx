@@ -30,7 +30,7 @@ type CSFloatListing = {
 async function getSkins(): Promise<Skin[]> {
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
-    { cache: "no-store" },
+    { next: { revalidate: 0 } },
   );
   return res.json();
 }
@@ -49,7 +49,7 @@ async function getCSFloatData(
       headers: {
         Authorization: process.env.CSFLOAT_API_KEY ?? "",
       },
-      next: { revalidate: 3600 },
+      next: { revalidate: 0 },
     });
     const data = await res.json();
     return data?.data?.[0] ?? null;
