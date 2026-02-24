@@ -42,12 +42,12 @@ async function getCSFloatData(
   marketHashName: string,
 ): Promise<CSFloatListing | null> {
   try {
-    const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(marketHashName)}&limit=5&sort_by=lowest_price`;
+    const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(marketHashName)}&limit=1&sort_by=lowest_price`;
     const res = await fetch(url, {
       headers: {
         Authorization: process.env.CSFLOAT_API_KEY ?? "",
       },
-      cache: "no-store",
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
     const data = await res.json();
     console.log("PROD - API key present:", !!process.env.CSFLOAT_API_KEY);
