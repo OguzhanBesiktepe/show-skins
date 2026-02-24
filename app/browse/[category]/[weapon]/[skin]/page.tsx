@@ -47,7 +47,7 @@ async function getCSFloatData(
       headers: {
         Authorization: process.env.CSFLOAT_API_KEY ?? "",
       },
-      cache: "no-store", // Revalidate every 60 seconds
+      next: { revalidate: 60 }, // Revalidate every 60 seconds
     });
     const data = await res.json();
     console.log("PROD - API key present:", !!process.env.CSFLOAT_API_KEY);

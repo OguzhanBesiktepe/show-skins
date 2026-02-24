@@ -19,6 +19,13 @@ function slugifyWeaponName(name: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function slugifySkinName(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function getCategoryFromWeapon(weaponName: string): string {
   const map: Record<string, string> = {
     "CZ75-Auto": "pistols",
@@ -118,7 +125,6 @@ export default function SearchBar({ skins }: { skins: Skin[] }) {
     setOpen(filtered.length > 0);
   }, [query, skins]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -132,11 +138,12 @@ export default function SearchBar({ skins }: { skins: Skin[] }) {
   function handleSelect(skin: Skin) {
     const weaponSlug = slugifyWeaponName(skin.weapon?.name ?? "");
     const category = getCategoryFromWeapon(skin.weapon?.name ?? "");
-    router.push(`/browse/${category}/${weaponSlug}`);
+    const cleaned = cleanSkinName(skin.name);
+    const skinSlug = slugifySkinName(cleaned);
+    router.push(`/browse/${category}/${weaponSlug}/${skinSlug}`);
     setQuery("");
     setOpen(false);
   }
-
   return (
     <div ref={ref} className="relative w-[420px] max-w-[45vw]">
       <div className="flex items-center gap-2 rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2">
