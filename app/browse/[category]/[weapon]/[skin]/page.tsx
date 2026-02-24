@@ -50,8 +50,12 @@ async function getCSFloatData(
       next: { revalidate: 3600 },
     });
     const data = await res.json();
+    console.log("PROD - API key present:", !!process.env.CSFLOAT_API_KEY);
+    console.log("PROD - Status:", res.status);
+    console.log("PROD - Body:", JSON.stringify(data).slice(0, 200));
     return data?.data?.[0] ?? null;
-  } catch {
+  } catch (e) {
+    console.log("PROD - Error:", e);
     return null;
   }
 }
