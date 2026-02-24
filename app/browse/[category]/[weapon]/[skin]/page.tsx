@@ -27,12 +27,15 @@ type CSFloatListing = {
   };
 };
 
+let skinsCache: Skin[] | null = null;
+
 async function getSkins(): Promise<Skin[]> {
+  if (skinsCache) return skinsCache;
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
-    { cache: "force-cache" },
   );
-  return res.json();
+  skinsCache = await res.json();
+  return skinsCache!;
 }
 
 async function getCSFloatData(
@@ -40,20 +43,15 @@ async function getCSFloatData(
 ): Promise<CSFloatListing | null> {
   try {
     const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(marketHashName)}&limit=5&sort_by=lowest_price`;
-    console.log("Fetching:", url);
-    console.log("API Key present:", !!process.env.CSFLOAT_API_KEY);
     const res = await fetch(url, {
       headers: {
         Authorization: process.env.CSFLOAT_API_KEY ?? "",
       },
       next: { revalidate: 3600 },
     });
-    console.log("Response status:", res.status);
     const data = await res.json();
-    console.log("Response body:", JSON.stringify(data).slice(0, 300));
     return data?.data?.[0] ?? null;
-  } catch (e) {
-    console.log("Error:", e);
+  } catch {
     return null;
   }
 }
