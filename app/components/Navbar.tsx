@@ -43,6 +43,8 @@ export default async function Navbar() {
     }));
   }
 
+  //List of all weapons to show in the dropdowns, in the desired order. The category is derived from the weapon name.
+
   const pistols = buildItems([
     "CZ75-Auto",
     "Desert Eagle",

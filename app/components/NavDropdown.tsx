@@ -2,9 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 
 type DropdownItem = {
-  label: string; // "Desert Eagle"
-  slug: string; // "desert-eagle"
-  iconUrl?: string; // "/weapons/deagle.png" (later from API)
+  label: string;
+  slug: string;
+  iconUrl?: string;
 };
 
 export default function NavDropdown({

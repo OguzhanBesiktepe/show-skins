@@ -35,6 +35,11 @@ async function getSkins(): Promise<Skin[]> {
   return res.json();
 }
 
+//CSFloat API integration to get pricing and inspect link data for a given skin. We will use the market hash name format: "Weapon | Skin (Wear)".
+// For example: "AK-47 | Redline (Field-Tested)".
+// For knives and gloves, the format is "★ Weapon | Skin (Wear)".
+// For example: "★ Karambit | Doppler (Factory New)".
+
 async function getCSFloatData(
   marketHashName: string,
 ): Promise<CSFloatListing | null> {

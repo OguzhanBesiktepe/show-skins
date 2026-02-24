@@ -14,7 +14,7 @@ type Skin = {
 async function getSkins(): Promise<Skin[]> {
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
-    { cache: "no-store" }
+    { cache: "no-store" },
   );
   return res.json();
 }
@@ -24,7 +24,7 @@ function normalizeBaseName(name: string) {
     .replace(/^(★\s*)?(StatTrak™\s*)?(Souvenir\s*)?/i, "")
     .replace(
       /\s*\((Factory New|Minimal Wear|Field-Tested|Well-Worn|Battle-Scarred)\)\s*$/i,
-      ""
+      "",
     )
     .trim();
 }
@@ -67,13 +67,13 @@ export default async function WeaponPage({
   const skins = await getSkins();
 
   const filtered = skins.filter(
-    (s) => slugifyWeaponName(s.weapon?.name ?? "") === weapon
+    (s) => slugifyWeaponName(s.weapon?.name ?? "") === weapon,
   );
 
   const weaponName = filtered[0]?.weapon?.name ?? weapon;
 
   const unique = Array.from(
-    new Map(filtered.map((s) => [getBaseKey(s), s])).values()
+    new Map(filtered.map((s) => [getBaseKey(s), s])).values(),
   );
 
   const total = unique.length;
