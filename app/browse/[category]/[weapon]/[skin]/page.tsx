@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 type Skin = {
   id: string;
   name: string;
@@ -42,20 +44,24 @@ async function getCSFloatData(
   marketHashName: string,
 ): Promise<CSFloatListing | null> {
   try {
-    const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(marketHashName)}&limit=1&sort_by=lowest_price`;
+    const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(
+      marketHashName,
+    )}&limit=1&sort_by=lowest_price`;
+
     const res = await fetch(url, {
-      headers: {
-        Authorization: process.env.CSFLOAT_API_KEY ?? "",
-      },
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+      headers: { Authorization: process.env.CSFLOAT_API_KEY ?? "" },
+      cache: "no-store",
     });
+
+    if (!res.ok) {
+      console.log("CSFloat error:", res.status, await res.text());
+      return null;
+    }
+
     const data = await res.json();
-    console.log("PROD - API key present:", !!process.env.CSFLOAT_API_KEY);
-    console.log("PROD - Status:", res.status);
-    console.log("PROD - Body:", JSON.stringify(data).slice(0, 200));
     return data?.data?.[0] ?? null;
   } catch (e) {
-    console.log("PROD - Error:", e);
+    console.log("CSFloat error:", e);
     return null;
   }
 }
@@ -155,7 +161,9 @@ export default async function SkinDetailPage({
   const quantity = floatData?.reference?.quantity;
   const inspectLink = floatData?.item?.inspect_link;
 
-  const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(marketHashName)}`;
+  const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(
+    marketHashName,
+  )}`;
 
   const description = matched.description
     ? parseDescription(matched.description)
