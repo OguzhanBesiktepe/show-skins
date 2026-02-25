@@ -46,12 +46,21 @@ async function getCSFloatData(
   const host = h.get("host");
   const proto = process.env.VERCEL ? "https" : "http";
 
+  if (!host) {
+    console.log("Missing host header");
+    return null;
+  }
+
   const res = await fetch(
     `${proto}://${host}/api/csfloat?marketHashName=${encodeURIComponent(marketHashName)}`,
     { cache: "no-store" },
   );
 
-  if (!res.ok) return null;
+  if (!res.ok) {
+    console.log("CSFloat proxy failed:", res.status, await res.text());
+    return null;
+  }
+
   const data = await res.json();
   return data?.data?.[0] ?? null;
 }
