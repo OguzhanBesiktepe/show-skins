@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-
-export const dynamic = "force-dynamic";
+import { headers } from "next/headers";
 
 type Skin = {
   id: string;
@@ -43,27 +42,18 @@ async function getSkins(): Promise<Skin[]> {
 async function getCSFloatData(
   marketHashName: string,
 ): Promise<CSFloatListing | null> {
-  try {
-    const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(
-      marketHashName,
-    )}&limit=1&sort_by=lowest_price`;
+  const h = await headers();
+  const host = h.get("host");
+  const proto = process.env.VERCEL ? "https" : "http";
 
-    const res = await fetch(url, {
-      headers: { Authorization: process.env.CSFLOAT_API_KEY ?? "" },
-      cache: "no-store",
-    });
+  const res = await fetch(
+    `${proto}://${host}/api/csfloat?marketHashName=${encodeURIComponent(marketHashName)}`,
+    { cache: "no-store" },
+  );
 
-    if (!res.ok) {
-      console.log("CSFloat error:", res.status, await res.text());
-      return null;
-    }
-
-    const data = await res.json();
-    return data?.data?.[0] ?? null;
-  } catch (e) {
-    console.log("CSFloat error:", e);
-    return null;
-  }
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data?.data?.[0] ?? null;
 }
 
 function normalizeBaseName(name: string) {
