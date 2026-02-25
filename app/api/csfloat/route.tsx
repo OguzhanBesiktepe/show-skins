@@ -1,10 +1,15 @@
+// app/api/csfloat/route.ts
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+type CacheEntry = { expires: number; data: any };
+const mem = new Map<string, CacheEntry>();
+const TTL_MS = 60_000;
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const marketHashName = searchParams.get("marketHashName");
+  const marketHashName = searchParams.get("marketHashName") ?? "";
 
   if (!marketHashName) {
     return NextResponse.json(
@@ -21,6 +26,12 @@ export async function GET(req: Request) {
     );
   }
 
+  const now = Date.now();
+  const cached = mem.get(marketHashName);
+  if (cached && cached.expires > now) {
+    return NextResponse.json(cached.data, { status: 200 });
+  }
+
   const url = `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(
     marketHashName,
   )}&limit=1&sort_by=lowest_price`;
@@ -30,18 +41,19 @@ export async function GET(req: Request) {
     cache: "no-store",
   });
 
+  // IMPORTANT: don’t cache non-200 responses
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     return NextResponse.json(
-      {
-        error: "CSFloat request failed",
-        status: res.status,
-        body: text.slice(0, 300),
-      },
+      { error: "CSFloat failed", status: res.status, body: text.slice(0, 300) },
       { status: res.status },
     );
   }
 
   const data = await res.json();
-  return NextResponse.json(data);
+
+  // Cache ONLY success
+  mem.set(marketHashName, { data, expires: now + TTL_MS });
+
+  return NextResponse.json(data, { status: 200 });
 }
