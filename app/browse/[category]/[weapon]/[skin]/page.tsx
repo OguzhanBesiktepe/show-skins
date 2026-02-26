@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
-import { headers } from "next/headers";
+import FavoriteButton from "@/app/components/FavoriteButton";
+import { getSteamMarketPrice } from "@/app/lib/steammarket";
+import { getCSFloatInspectData } from "@/app/lib/csfloat";
 
 type Skin = {
   id: string;
@@ -14,56 +16,19 @@ type Skin = {
   collection?: { name?: string; image?: string };
 };
 
-type CSFloatListing = {
-  price: number;
-  reference: {
-    base_price: number;
-    predicted_price: number;
-    quantity: number;
-  };
-  item: {
-    float_value: number;
-    wear_name: string;
-    inspect_link: string;
-  };
-};
-
 let skinsCache: Skin[] | null = null;
 
 async function getSkins(): Promise<Skin[]> {
   if (skinsCache) return skinsCache;
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
+    { cache: "no-store" },
   );
   skinsCache = await res.json();
   return skinsCache!;
 }
 
-async function getCSFloatData(
-  marketHashName: string,
-): Promise<CSFloatListing | null> {
-  const h = await headers();
-  const host = h.get("host");
-  const proto = process.env.VERCEL ? "https" : "http";
 
-  if (!host) {
-    console.log("Missing host header");
-    return null;
-  }
-
-  const res = await fetch(
-    `${proto}://${host}/api/csfloat?marketHashName=${encodeURIComponent(marketHashName)}`,
-    { cache: "no-store" },
-  );
-
-  if (!res.ok) {
-    console.log("CSFloat proxy failed:", res.status, await res.text());
-    return null;
-  }
-
-  const data = await res.json();
-  return data?.data?.[0] ?? null;
-}
 
 function normalizeBaseName(name: string) {
   return name
@@ -110,16 +75,12 @@ function parseDescription(raw: string) {
   return { main: main.join(" "), flavour: flavour.join(" ") };
 }
 
-function formatPrice(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
 export default async function SkinDetailPage({
   params,
 }: {
   params: Promise<{ category: string; weapon: string; skin: string }>;
 }) {
-  const { weapon, skin: skinSlug } = await params;
+  const { category, weapon, skin: skinSlug } = await params;
   const skins = await getSkins();
 
   const matched = skins.find(
@@ -154,11 +115,16 @@ export default async function SkinDetailPage({
   const wearSuffix = isKnifeOrGlove ? "(Minimal Wear)" : "(Field-Tested)";
   const marketHashName = `${starPrefix}${matched.weapon?.name} | ${skinOnlyName} ${wearSuffix}`;
 
-  const floatData = await getCSFloatData(marketHashName);
-  const lowestPrice = floatData?.price;
-  const basePrice = floatData?.reference?.base_price;
-  const quantity = floatData?.reference?.quantity;
-  const inspectLink = floatData?.item?.inspect_link;
+  // Fetch price + inspect data in parallel
+  const [steamPrice, floatData] = await Promise.all([
+    getSteamMarketPrice(marketHashName),
+    getCSFloatInspectData(marketHashName),
+  ]);
+
+  const lowestPrice = steamPrice?.lowest_price ?? null;
+  const medianPrice = steamPrice?.median_price ?? null;
+  const volume = steamPrice?.volume ?? null;
+  const inspectLink = floatData?.inspect_link ?? null;
 
   const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(
     marketHashName,
@@ -243,6 +209,13 @@ export default async function SkinDetailPage({
                   Inspect in Game
                 </a>
               )}
+
+              <FavoriteButton
+                skinId={matched.id}
+                skinName={displayName}
+                skinImage={matched.image}
+                skinPath={`/browse/${category}/${weapon}/${skinSlug}`}
+              />
             </div>
           </div>
 
@@ -265,24 +238,24 @@ export default async function SkinDetailPage({
                   <p className="text-zinc-300">
                     Lowest Listing:{" "}
                     <span className="text-white font-semibold text-xl">
-                      {formatPrice(lowestPrice)}
+                      {lowestPrice}
                     </span>
                   </p>
-                  {basePrice && (
+                  {medianPrice && (
                     <p className="text-zinc-300">
-                      Reference Price:{" "}
+                      Median Price:{" "}
                       <span className="text-white font-semibold">
-                        {formatPrice(basePrice)}
+                        {medianPrice}
                       </span>
                     </p>
                   )}
-                  {quantity && (
+                  {volume && (
                     <p className="text-zinc-400 text-sm mt-1">
-                      {quantity} listings available on CSFloat
+                      {volume} sold recently on Steam Market
                     </p>
                   )}
                   <p className="text-zinc-500 text-xs mt-1">
-                    {wearSuffix.replace(/[()]/g, "")} price via CSFloat
+                    {wearSuffix.replace(/[()]/g, "")} price via Steam Market
                   </p>
                 </div>
               ) : (

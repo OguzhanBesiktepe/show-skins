@@ -8,7 +8,7 @@ export type Weapon = {
 export async function getWeapons(): Promise<Weapon[]> {
   const res = await fetch(
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
-    { cache: "force-cache" }
+    { cache: "no-store" }
   );
 
   const skins = await res.json();

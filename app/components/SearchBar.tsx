@@ -145,11 +145,11 @@ export default function SearchBar({ skins }: { skins: Skin[] }) {
     setOpen(false);
   }
   return (
-    <div ref={ref} className="relative w-[420px] max-w-[45vw]">
-      <div className="flex items-center gap-2 rounded-md bg-zinc-800/60 border border-zinc-700 px-3 py-2">
-        <span className="text-zinc-400">⌕</span>
+    <div ref={ref} className="relative w-full">
+      <div className="flex items-center gap-2 rounded-md bg-zinc-800/60 border border-zinc-700 px-4 py-4">
+        <span className="text-zinc-400 text-lg">⌕</span>
         <input
-          className="w-full bg-transparent outline-none text-sm text-zinc-100 placeholder:text-zinc-400"
+          className="w-full bg-transparent outline-none text-base text-zinc-100 placeholder:text-zinc-400"
           placeholder="Search..."
           aria-label="Search skins"
           value={query}

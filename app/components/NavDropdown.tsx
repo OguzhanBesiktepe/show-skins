@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 
 type DropdownItem = {
   label: string;
@@ -18,12 +18,9 @@ export default function NavDropdown({
 }) {
   return (
     <div className="relative group">
-      <Link
-        href={href}
-        className="flex items-center gap-1 text-base font-semibold tracking-wide text-zinc-200 hover:text-amber-400 transition-colors"
-      >
+      <span className="flex items-center gap-1 text-base font-semibold tracking-wide text-zinc-200 group-hover:text-amber-400 transition-colors cursor-default select-none">
         {title} <span className="text-zinc-400">▾</span>
-      </Link>
+      </span>
 
       <div className="hidden group-hover:block absolute left-0 top-full pt-3 z-50">
         <div className="w-64 rounded-lg border border-zinc-700 bg-zinc-900 shadow-lg overflow-hidden">

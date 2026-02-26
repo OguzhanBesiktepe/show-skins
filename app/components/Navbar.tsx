@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import NavDropdown from "./NavDropdown";
 import SearchBar from "./SearchBar";
+import SteamAuthArea from "./SteamAuthArea";
 
 type Skin = {
   id: string;
@@ -11,11 +12,16 @@ type Skin = {
 };
 
 async function getSkins(): Promise<Skin[]> {
-  const res = await fetch(
-    "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
-    { cache: "no-store" },
-  );
-  return res.json();
+  try {
+    const res = await fetch(
+      "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json",
+      { cache: "no-store" },
+    );
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
 }
 
 function slugifyWeaponName(name: string) {
@@ -27,9 +33,12 @@ function slugifyWeaponName(name: string) {
 }
 
 function getWeaponIcon(skins: Skin[], weaponName: string): string | undefined {
-  return skins.find(
-    (s) => s.weapon?.name?.toLowerCase() === weaponName.toLowerCase(),
-  )?.image;
+  const targetSlug = slugifyWeaponName(weaponName);
+
+  return skins.find((s) => {
+    const apiName = s.weapon?.name ?? "";
+    return slugifyWeaponName(apiName) === targetSlug;
+  })?.image;
 }
 
 export default async function Navbar() {
@@ -43,7 +52,7 @@ export default async function Navbar() {
     }));
   }
 
-  //List of all weapons to show in the dropdowns, in the desired order. The category is derived from the weapon name.
+  // List of all weapons to show in the dropdowns, in the desired order.
 
   const pistols = buildItems([
     "CZ75-Auto",
@@ -126,13 +135,13 @@ export default async function Navbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-8">
         <Link
           href="/"
-          className="flex items-center hover:scale-120 transform transition duration-200"
+          className="flex items-center hover:scale-110 transform transition duration-200"
         >
           <Image
             src="/logo.png"
             alt="ShowSkins"
-            width={120}
-            height={40}
+            width={100}
+            height={45}
             className="object-contain"
             priority
           />
@@ -152,10 +161,13 @@ export default async function Navbar() {
           <NavDropdown title="Gloves" href="/browse/gloves" items={gloves} />
         </div>
 
-        <div className="flex-1" />
-
         {/* Search */}
-        <SearchBar skins={skins} />
+        <div className="flex-1 flex">
+          <SearchBar skins={skins} />
+        </div>
+
+        {/* Steam Auth */}
+        <SteamAuthArea />
       </div>
     </nav>
   );
