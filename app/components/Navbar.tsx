@@ -180,7 +180,9 @@ export default async function Navbar() {
         </div>
 
         {/* Mobile hamburger + drawer */}
-        <MobileNav categories={mobileCategories} skins={skins} />
+        <div className="md:hidden ml-auto">
+          <MobileNav categories={mobileCategories} skins={skins} />
+        </div>
       </div>
     </nav>
   );
