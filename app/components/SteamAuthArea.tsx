@@ -29,6 +29,11 @@ export default function SteamAuthArea() {
   }, []);
 
   useEffect(() => {
+    document.body.style.cursor = loading ? "wait" : "";
+    return () => { document.body.style.cursor = ""; };
+  }, [loading]);
+
+  useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
         dropdownRef.current &&
@@ -78,7 +83,7 @@ export default function SteamAuthArea() {
           className="rounded-full border border-zinc-600"
           unoptimized
         />
-        <span className="text-sm text-zinc-200 max-w-[120px] truncate">
+        <span className="text-base font-semibold tracking-wide text-zinc-200 max-w-[120px] truncate">
           {user.name}
         </span>
         <span className="text-zinc-400 text-xs">▾</span>

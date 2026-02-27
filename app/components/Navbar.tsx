@@ -131,7 +131,7 @@ export default async function Navbar() {
   ]);
 
   return (
-    <nav className="bg-[#b47e1a] border-b border-zinc-800">
+    <nav className="bg-[#272727] border-b border-zinc-800">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-8">
         <Link
           href="/"
