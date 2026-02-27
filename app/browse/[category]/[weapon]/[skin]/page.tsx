@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import FavoriteButton from "@/app/components/FavoriteButton";
+import { getAllPrices, lookupPrice } from "@/app/lib/bulk-prices";
 import { getSteamMarketPrice } from "@/app/lib/steammarket";
 import { getCSFloatInspectData } from "@/app/lib/csfloat";
 
@@ -103,27 +104,39 @@ export default async function SkinDetailPage({
     ? displayName.split("|").slice(1).join("|").trim()
     : displayName;
 
-  const isKnifeOrGlove =
-    matched.weapon?.name?.toLowerCase().includes("knife") ||
-    matched.weapon?.name?.toLowerCase().includes("karambit") ||
-    matched.weapon?.name?.toLowerCase().includes("bayonet") ||
-    matched.weapon?.name?.toLowerCase().includes("dagger") ||
-    matched.weapon?.name?.toLowerCase().includes("gloves") ||
-    matched.weapon?.name?.toLowerCase().includes("wraps");
+  const wn = matched.weapon?.name?.toLowerCase() ?? "";
+  const isKnife =
+    wn.includes("knife") ||
+    wn.includes("karambit") ||
+    wn.includes("bayonet") ||
+    wn.includes("dagger");
+  const isGlove = wn.includes("gloves") || wn.includes("wraps");
 
-  const starPrefix = isKnifeOrGlove ? "★ " : "";
-  const wearSuffix = isKnifeOrGlove ? "(Minimal Wear)" : "(Field-Tested)";
+  const starPrefix = isKnife || isGlove ? "★ " : "";
+  // Knives → Minimal Wear (cheapest common tier)
+  // Gloves → Field-Tested (gloves don't come in FN/MW)
+  // Everything else → Field-Tested
+  const wearSuffix = isKnife ? "(Minimal Wear)" : "(Field-Tested)";
   const marketHashName = `${starPrefix}${matched.weapon?.name} | ${skinOnlyName} ${wearSuffix}`;
 
-  // Fetch price + inspect data in parallel
-  const [steamPrice, floatData] = await Promise.all([
-    getSteamMarketPrice(marketHashName),
+  // Fetch bulk price map + CSFloat inspect data in parallel.
+  // The bulk map is already cached in memory after the first load — instant lookup.
+  const [priceMap, floatData] = await Promise.all([
+    getAllPrices(),
     getCSFloatInspectData(marketHashName),
   ]);
 
-  const lowestPrice = steamPrice?.lowest_price ?? null;
-  const medianPrice = steamPrice?.median_price ?? null;
-  const volume = steamPrice?.volume ?? null;
+  const bulk = lookupPrice(priceMap, marketHashName);
+
+  // Fall back to Steam's per-item API if this skin isn't in the Skinport bulk data
+  const steamFallback =
+    !bulk.lowest && !bulk.median
+      ? await getSteamMarketPrice(marketHashName)
+      : null;
+
+  const lowestPrice = bulk.lowest ?? steamFallback?.lowest_price ?? null;
+  const medianPrice = bulk.median ?? steamFallback?.median_price ?? null;
+  const volume = steamFallback?.volume ?? null;
   const inspectLink = floatData?.inspect_link ?? null;
 
   const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(
@@ -255,7 +268,7 @@ export default async function SkinDetailPage({
                     </p>
                   )}
                   <p className="text-zinc-500 text-xs mt-1">
-                    {wearSuffix.replace(/[()]/g, "")} price via Steam Market
+                    {wearSuffix.replace(/[()]/g, "")} · via Skinport
                   </p>
                 </div>
               ) : (

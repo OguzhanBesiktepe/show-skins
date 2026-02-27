@@ -1,5 +1,6 @@
 import SkinCard from "@/app/components/SkinCard";
 import Pagination from "@/app/components/Pagination";
+import { getAllPrices, lookupPrice } from "@/app/lib/bulk-prices";
 
 type Skin = {
   id: string;
@@ -50,6 +51,26 @@ function slugifySkinName(name: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function buildMarketHashName(skin: Skin): string {
+  const weaponName = skin.weapon?.name ?? "";
+  const lower = weaponName.toLowerCase();
+  const isKnife =
+    lower.includes("knife") ||
+    lower.includes("karambit") ||
+    lower.includes("bayonet") ||
+    lower.includes("dagger");
+  const isGlove = lower.includes("gloves") || lower.includes("wraps");
+
+  const displayName = normalizeBaseName(skin.name);
+  const skinOnlyName = displayName.includes("|")
+    ? displayName.split("|").slice(1).join("|").trim()
+    : displayName;
+
+  const starPrefix = isKnife || isGlove ? "★ " : "";
+  const wearSuffix = isKnife ? "(Minimal Wear)" : "(Field-Tested)";
+  return `${starPrefix}${weaponName} | ${skinOnlyName} ${wearSuffix}`;
+}
+
 const PER_PAGE = 48;
 
 export default async function WeaponPage({
@@ -64,7 +85,7 @@ export default async function WeaponPage({
 
   const currentPage = Math.max(1, Number(resolvedSearchParams?.page) || 1);
 
-  const skins = await getSkins();
+  const [skins, priceMap] = await Promise.all([getSkins(), getAllPrices()]);
 
   const filtered = skins.filter(
     (s) => slugifyWeaponName(s.weapon?.name ?? "") === weapon,
@@ -100,6 +121,7 @@ export default async function WeaponPage({
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {pageItems.map((skin) => {
             const skinSlug = slugifySkinName(normalizeBaseName(skin.name));
+            const { median } = lookupPrice(priceMap, buildMarketHashName(skin));
             return (
               <SkinCard
                 key={getBaseKey(skin)}
@@ -112,6 +134,7 @@ export default async function WeaponPage({
                 imageUrl={skin.image}
                 sourceLabel={skin.collection?.name}
                 sourceImageUrl={skin.collection?.image}
+                priceRange={median ?? undefined}
               />
             );
           })}

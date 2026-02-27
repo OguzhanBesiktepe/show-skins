@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd C:\\\\Users\\\\satis\\\\OneDrive\\\\Desktop\\\\show-skins:*)",
+      "Bash(head:*)",
+      "Bash(test:*)",
+      "Bash(cd:*)",
+      "Bash(cd /c/Users/satis/OneDrive/Desktop/show-skins && npx tsc --noEmit 2>&1)",
+      "Bash(curl:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(git checkout:*)",
+      "Bash(git:*)",
+      "WebFetch(domain:prices.csgotrader.app)"
+    ]
+  }
+}

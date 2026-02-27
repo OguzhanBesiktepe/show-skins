@@ -67,8 +67,15 @@ export default function SkinCard({
         </div>
 
         <div className="mt-4 text-center">
-          {priceRange && (
-            <div className="text-white font-semibold">{priceRange}</div>
+          {priceRange ? (
+            <div>
+              <div className="text-xs text-zinc-400">Median Price</div>
+              <div className="text-white font-semibold">{priceRange}</div>
+            </div>
+          ) : (
+            <div className="text-xs text-zinc-500 italic">
+              No pricing via Skinport
+            </div>
           )}
           {statTrakPriceRange && (
             <div className="text-[#f89406] font-semibold">

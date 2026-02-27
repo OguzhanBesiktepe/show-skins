@@ -43,11 +43,16 @@ export default async function FavoritesPage() {
     );
   }
 
-  const data = await redis.hgetall<Record<string, string>>(`fav:${session.steamId}`);
+  const data = await redis.hgetall<Record<string, string>>(
+    `fav:${session.steamId}`,
+  );
   const favorites: Favorite[] = data
     ? Object.values(data)
         .map((v) => (typeof v === "string" ? JSON.parse(v) : v) as Favorite)
-        .sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
+        .sort(
+          (a, b) =>
+            new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime(),
+        )
     : [];
 
   return (

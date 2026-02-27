@@ -1,5 +1,6 @@
 import SkinCard from "@/app/components/SkinCard";
 import Pagination from "@/app/components/Pagination";
+import { getAllPrices, lookupPrice } from "@/app/lib/bulk-prices";
 
 type Skin = {
   id: string;
@@ -100,6 +101,24 @@ function getCategoryFromWeapon(weaponName: string): string {
   return map[name] ?? "rifles";
 }
 
+function buildMarketHashName(skin: Skin): string {
+  const weaponName = skin.weapon?.name ?? "";
+  const lower = weaponName.toLowerCase();
+  const isKnife =
+    lower.includes("knife") ||
+    lower.includes("karambit") ||
+    lower.includes("bayonet") ||
+    lower.includes("dagger");
+  const isGlove = lower.includes("gloves") || lower.includes("wraps");
+  const displayName = normalizeBaseName(skin.name);
+  const skinOnlyName = displayName.includes("|")
+    ? displayName.split("|").slice(1).join("|").trim()
+    : displayName;
+  const starPrefix = isKnife || isGlove ? "★ " : "";
+  const wearSuffix = isKnife ? "(Minimal Wear)" : "(Field-Tested)";
+  return `${starPrefix}${weaponName} | ${skinOnlyName} ${wearSuffix}`;
+}
+
 function pickRandomUnique<T>(arr: T[], n: number) {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -119,7 +138,7 @@ export default async function Home({
   const resolvedSearchParams = await searchParams;
   const currentPage = Math.max(1, Number(resolvedSearchParams?.page) || 1);
 
-  const skins = await getSkins();
+  const [skins, priceMap] = await Promise.all([getSkins(), getAllPrices()]);
 
   const unique = Array.from(
     new Map(skins.map((s) => [getBaseKey(s), s])).values()
@@ -149,6 +168,7 @@ export default async function Home({
             const weaponSlug = slugifyWeaponName(skin.weapon?.name ?? "");
             const skinSlug = slugifySkinName(normalizeBaseName(skin.name));
             const category = getCategoryFromWeapon(skin.weapon?.name ?? "");
+            const { median } = lookupPrice(priceMap, buildMarketHashName(skin));
             return (
               <SkinCard
                 key={getBaseKey(skin)}
@@ -160,6 +180,7 @@ export default async function Home({
                 hasStatTrak={skin.stattrak ?? false}
                 imageUrl={skin.image}
                 sourceLabel={skin.collection?.name}
+                priceRange={median ?? undefined}
               />
             );
           })}
