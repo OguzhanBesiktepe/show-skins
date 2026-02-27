@@ -1,6 +1,6 @@
 import { redis } from "./redis";
 
-const CACHE_TTL_SECONDS = 30 * 60; // 30 minutes
+const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 
 export type CSFloatInspectData = {
   inspect_link: string | null;
@@ -11,44 +11,54 @@ export type CSFloatInspectData = {
 export async function getCSFloatInspectData(
   marketHashName: string,
 ): Promise<CSFloatInspectData | null> {
-  const apiKey = process.env.CSFLOAT_API_KEY;
-  if (!apiKey) return null;
+  const cacheKey = `inspect:${marketHashName}`;
 
-  const cacheKey = `csfloat:${marketHashName}`;
-
-  // Check Redis cache — persists across all serverless invocations
   const cached = await redis.get<CSFloatInspectData>(cacheKey);
   if (cached) return cached;
 
   try {
-    const res = await fetch(
-      `https://csfloat.com/api/v1/listings?market_hash_name=${encodeURIComponent(marketHashName)}&limit=1&sort_by=lowest_price`,
-      { headers: { Authorization: apiKey }, cache: "no-store" },
-    );
+    const url = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(marketHashName)}/render?start=0&count=1&currency=1&language=english&format=json`;
 
-    if (res.status === 429) {
-      console.warn("[CSFloat] Rate limited for:", marketHashName);
-      return null;
-    }
+    const res = await fetch(url, { cache: "no-store" });
 
     if (!res.ok) {
-      console.warn("[CSFloat] Non-OK:", res.status, "for:", marketHashName);
+      console.warn("[SteamInspect] Non-OK:", res.status, "for:", marketHashName);
       return null;
     }
 
     const json = await res.json();
-    const listing = json?.data?.[0] ?? null;
+
+    if (!json.success || !json.listinginfo || !json.assets) return null;
+
+    // Grab the first listing
+    const listingId = Object.keys(json.listinginfo)[0];
+    if (!listingId) return null;
+
+    const listing = json.listinginfo[listingId];
+    const assetId = listing?.asset?.id;
+    if (!assetId) return null;
+
+    // Get the inspect link template and substitute placeholders
+    const assetData = json.assets?.["730"]?.["2"]?.[assetId];
+    const linkTemplate: string | undefined =
+      assetData?.market_actions?.[0]?.link;
+
+    if (!linkTemplate) return null;
+
+    const inspectLink = linkTemplate
+      .replace("%listingid%", listingId)
+      .replace("%assetid%", assetId);
 
     const data: CSFloatInspectData = {
-      inspect_link: listing?.item?.inspect_link ?? null,
-      float_value: listing?.item?.float_value ?? null,
-      wear_name: listing?.item?.wear_name ?? null,
+      inspect_link: inspectLink,
+      float_value: null,
+      wear_name: null,
     };
 
     await redis.set(cacheKey, data, { ex: CACHE_TTL_SECONDS });
     return data;
   } catch (err) {
-    console.error("[CSFloat] Fetch error:", err);
+    console.error("[SteamInspect] Fetch error:", err);
     return null;
   }
 }
