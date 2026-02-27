@@ -3,6 +3,7 @@ import Link from "next/link";
 import NavDropdown from "./NavDropdown";
 import SearchBar from "./SearchBar";
 import SteamAuthArea from "./SteamAuthArea";
+import MobileNav, { NavCategory } from "./MobileNav";
 
 type Skin = {
   id: string;
@@ -130,12 +131,22 @@ export default async function Navbar() {
     "Sport Gloves",
   ]);
 
+  const mobileCategories: NavCategory[] = [
+    { title: "Pistols", href: "/browse/pistols", items: pistols },
+    { title: "SMGs", href: "/browse/smgs", items: smgs },
+    { title: "LMGs", href: "/browse/lmgs", items: lmgs },
+    { title: "Shotguns", href: "/browse/shotguns", items: shotguns },
+    { title: "Rifles", href: "/browse/rifles", items: rifles },
+    { title: "Knives", href: "/browse/knives", items: knives },
+    { title: "Gloves", href: "/browse/gloves", items: gloves },
+  ];
+
   return (
     <nav className="bg-[#272727] border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center gap-4 md:gap-8">
         <Link
           href="/"
-          className="flex items-center hover:scale-110 transform transition duration-200"
+          className="flex items-center hover:scale-110 transform transition duration-200 flex-shrink-0"
         >
           <Image
             src="/logo.png"
@@ -147,15 +158,12 @@ export default async function Navbar() {
           />
         </Link>
 
-        <div className="flex items-center gap-8">
+        {/* Desktop nav categories — hidden on mobile */}
+        <div className="hidden md:flex items-center gap-8">
           <NavDropdown title="Pistols" href="/browse/pistols" items={pistols} />
           <NavDropdown title="SMGs" href="/browse/smgs" items={smgs} />
           <NavDropdown title="LMGs" href="/browse/lmgs" items={lmgs} />
-          <NavDropdown
-            title="Shotguns"
-            href="/browse/shotguns"
-            items={shotguns}
-          />
+          <NavDropdown title="Shotguns" href="/browse/shotguns" items={shotguns} />
           <NavDropdown title="Rifles" href="/browse/rifles" items={rifles} />
           <NavDropdown title="Knives" href="/browse/knives" items={knives} />
           <NavDropdown title="Gloves" href="/browse/gloves" items={gloves} />
@@ -168,6 +176,9 @@ export default async function Navbar() {
 
         {/* Steam Auth */}
         <SteamAuthArea />
+
+        {/* Mobile hamburger + drawer */}
+        <MobileNav categories={mobileCategories} />
       </div>
     </nav>
   );

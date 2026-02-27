@@ -151,14 +151,14 @@ export default async function SkinDetailPage({
 
   return (
     <main className="min-h-screen text-white">
-      <div className="max-w-4xl mx-auto px-6 py-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         {/* Header */}
         <div className="mb-8">
           <p className="text-zinc-400 text-sm uppercase tracking-widest">
             {matched.weapon?.name}
           </p>
           <h1
-            className="text-4xl font-bold mt-1"
+            className="text-2xl sm:text-4xl font-bold mt-1"
             style={{ fontFamily: "CS Regular" }}
           >
             {displayName}
@@ -176,7 +176,7 @@ export default async function SkinDetailPage({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Image */}
           <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-center bg-[#1f2937] rounded-xl border border-zinc-800 p-8">
+            <div className="flex items-center justify-center bg-[#1f2937] rounded-xl border border-zinc-800 p-4 sm:p-8">
               <Image
                 src={matched.image}
                 alt={displayName}

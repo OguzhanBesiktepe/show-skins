@@ -110,7 +110,7 @@ export default async function WeaponPage({
   return (
     <main className="min-h-screen text-white">
       <div className="max-w-7xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold" style={{ fontFamily: "CS Regular" }}>
+        <h1 className="text-2xl sm:text-3xl font-bold" style={{ fontFamily: "CS Regular" }}>
           {weaponName} Skins
         </h1>
 
