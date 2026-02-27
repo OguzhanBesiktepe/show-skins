@@ -137,6 +137,8 @@ export default async function SkinDetailPage({
   const lowestPrice = bulk.lowest ?? steamFallback?.lowest_price ?? null;
   const medianPrice = bulk.median ?? steamFallback?.median_price ?? null;
   const volume = steamFallback?.volume ?? null;
+  const quantity = bulk.quantity;
+  const skinportUrl = bulk.skinportUrl;
   const inspectLink = floatData?.inspect_link ?? null;
 
   const steamMarketUrl = `https://steamcommunity.com/market/listings/730/${encodeURIComponent(
@@ -273,6 +275,20 @@ export default async function SkinDetailPage({
                 </div>
               ) : (
                 <p className="text-zinc-400 text-sm">Price data unavailable</p>
+              )}
+              {skinportUrl && (
+                <a
+                  href={skinportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 flex items-center justify-center gap-2 bg-[#e85a1a]/10 hover:bg-[#e85a1a]/20 text-[#e85a1a] font-semibold px-4 py-2.5 rounded-lg border border-[#e85a1a]/30 transition-colors text-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                  </svg>
+                  {quantity != null ? `${quantity.toLocaleString()} Listed on Skinport` : "View on Skinport"}
+                </a>
               )}
             </div>
 

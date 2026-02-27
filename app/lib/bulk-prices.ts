@@ -7,6 +7,7 @@ type SkinportItem = {
   min_price: number | null;
   median_price: number | null;
   quantity: number;
+  item_page?: string;
 };
 
 export type PriceMap = Record<string, SkinportItem>;
@@ -51,10 +52,12 @@ function fmt(n: number | null): string | null {
 export function lookupPrice(
   priceMap: PriceMap,
   marketHashName: string,
-): { lowest: string | null; median: string | null } {
+): { lowest: string | null; median: string | null; quantity: number | null; skinportUrl: string | null } {
   const item = priceMap[marketHashName];
   return {
     lowest: fmt(item?.min_price ?? null),
     median: fmt(item?.median_price ?? null),
+    quantity: item?.quantity ?? null,
+    skinportUrl: item?.item_page ?? null,
   };
 }
