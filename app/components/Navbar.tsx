@@ -169,16 +169,18 @@ export default async function Navbar() {
           <NavDropdown title="Gloves" href="/browse/gloves" items={gloves} />
         </div>
 
-        {/* Search */}
-        <div className="flex-1 flex">
+        {/* Search — hidden on mobile, lives inside drawer instead */}
+        <div className="hidden md:flex flex-1">
           <SearchBar skins={skins} />
         </div>
 
-        {/* Steam Auth */}
-        <SteamAuthArea />
+        {/* Steam Auth — hidden on mobile */}
+        <div className="hidden md:block">
+          <SteamAuthArea />
+        </div>
 
         {/* Mobile hamburger + drawer */}
-        <MobileNav categories={mobileCategories} />
+        <MobileNav categories={mobileCategories} skins={skins} />
       </div>
     </nav>
   );
