@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import Badge from "./Badge";
 
@@ -33,10 +33,71 @@ export default function SkinCard({
   sourceImageUrl,
   href,
 }: SkinCardProps) {
+  //tilt and glare effect on cards.
+
   const [imgOk, setImgOk] = useState(true);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [glarePos, setGlarePos] = useState({ x: 50, y: 50 });
+  const [isHovering, setIsHovering] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const dx = e.clientX - (rect.left + rect.width / 2);
+    const dy = e.clientY - (rect.top + rect.height / 2);
+    setTilt({
+      x: -(dy / (rect.height / 2)) * 10,
+      y: (dx / (rect.width / 2)) * 10,
+    });
+    setGlarePos({
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    });
+  }, []);
+
+  const handleMouseEnter = useCallback(() => setIsHovering(true), []);
+
+  const handleMouseLeave = useCallback(() => {
+    setIsHovering(false);
+    setTilt({ x: 0, y: 0 });
+    setGlarePos({ x: 50, y: 50 });
+  }, []);
 
   const card = (
-    <div className="rounded-xl border border-zinc-800 bg-[#1f2937] overflow-hidden shadow-sm hover:border-zinc-600 hover:scale-[1.02] transition-all cursor-pointer">
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        transform: `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${isHovering ? 1.03 : 1})`,
+        transition: isHovering
+          ? "transform 0.08s ease, border-color 0.2s ease, box-shadow 0.2s ease"
+          : "transform 0.45s ease, border-color 0.2s ease, box-shadow 0.2s ease",
+        willChange: "transform",
+        boxShadow: isHovering
+          ? "0 16px 40px rgba(0,0,0,0.5)"
+          : "0 2px 8px rgba(0,0,0,0.2)",
+      }}
+      className="rounded-xl border border-zinc-800 bg-[#1f2937] overflow-hidden cursor-pointer relative hover:border-zinc-500"
+    >
+      {/* Glare overlay */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(circle at ${glarePos.x}% ${glarePos.y}%, rgba(255,255,255,0.07), transparent 65%)`,
+          opacity: isHovering ? 1 : 0,
+          transition: isHovering ? "opacity 0.1s ease" : "opacity 0.4s ease",
+          pointerEvents: "none",
+          zIndex: 10,
+          borderRadius: "inherit",
+        }}
+      />
+
       <div className="relative px-5 pt-4 pb-6">
         <div className="text-center text-sm text-zinc-300">{weapon}</div>
         <div className="text-center text-lg font-semibold text-white leading-tight">
