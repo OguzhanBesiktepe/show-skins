@@ -2,6 +2,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "@/app/lib/session";
 import { redis } from "@/app/lib/redis";
+import { getAllPrices, lookupPrice } from "@/app/lib/bulk-prices";
+
+function buildMarketHashName(skinName: string, skinPath: string): string {
+  const isKnife = skinPath.includes("/knives/");
+  const isGlove = skinPath.includes("/gloves/");
+  const starPrefix = isKnife || isGlove ? "★ " : "";
+  const wearSuffix = isKnife ? "(Minimal Wear)" : "(Field-Tested)";
+  return `${starPrefix}${skinName} ${wearSuffix}`;
+}
 
 type Favorite = {
   skinId: string;
@@ -43,9 +52,11 @@ export default async function FavoritesPage() {
     );
   }
 
-  const data = await redis.hgetall<Record<string, string>>(
-    `fav:${session.steamId}`,
-  );
+  const [data, priceMap] = await Promise.all([
+    redis.hgetall<Record<string, string>>(`fav:${session.steamId}`),
+    getAllPrices(),
+  ]);
+
   const favorites: Favorite[] = data
     ? Object.values(data)
         .map((v) => (typeof v === "string" ? JSON.parse(v) : v) as Favorite)
@@ -91,29 +102,41 @@ export default async function FavoritesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {favorites.map((fav) => (
-              <Link
-                key={fav.skinId}
-                href={fav.skinPath}
-                className="rounded-xl border border-zinc-800 bg-[#1f2937] overflow-hidden hover:border-zinc-600 hover:scale-[1.02] transition-all"
-              >
-                <div className="flex flex-col items-center p-4 gap-3">
-                  <div className="flex items-center justify-center h-[130px]">
-                    <Image
-                      src={fav.skinImage}
-                      alt={fav.skinName}
-                      width={160}
-                      height={120}
-                      className="object-contain max-h-[130px]"
-                      unoptimized
-                    />
+            {favorites.map((fav) => {
+              const hashName = buildMarketHashName(fav.skinName, fav.skinPath);
+              const { median } = lookupPrice(priceMap, hashName);
+              return (
+                <Link
+                  key={fav.skinId}
+                  href={fav.skinPath}
+                  className="rounded-xl border border-zinc-800 bg-[#1f2937] overflow-hidden hover:border-zinc-600 hover:scale-[1.02] transition-all"
+                >
+                  <div className="flex flex-col items-center p-4 gap-3">
+                    <div className="flex items-center justify-center h-[130px]">
+                      <Image
+                        src={fav.skinImage}
+                        alt={fav.skinName}
+                        width={160}
+                        height={120}
+                        className="object-contain max-h-[130px]"
+                        unoptimized
+                      />
+                    </div>
+                    <p className="text-sm text-center text-zinc-200 font-medium leading-tight line-clamp-2">
+                      {fav.skinName}
+                    </p>
+                    {median ? (
+                      <div className="text-center">
+                        <p className="text-xs text-zinc-500">Median Price</p>
+                        <p className="text-sm font-semibold text-white">{median}</p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-zinc-600 italic">No price data</p>
+                    )}
                   </div>
-                  <p className="text-sm text-center text-zinc-200 font-medium leading-tight line-clamp-2">
-                    {fav.skinName}
-                  </p>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
