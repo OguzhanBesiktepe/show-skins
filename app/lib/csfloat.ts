@@ -1,4 +1,6 @@
-const CACHE_TTL_MS = 30 * 60_000; // 30 minutes
+import { redis } from "./redis";
+
+const CACHE_TTL_SECONDS = 30 * 60; // 30 minutes
 
 export type CSFloatInspectData = {
   inspect_link: string | null;
@@ -6,18 +8,17 @@ export type CSFloatInspectData = {
   wear_name: string | null;
 };
 
-type CacheEntry = { data: CSFloatInspectData; expires: number };
-
-const memCache = new Map<string, CacheEntry>();
-
 export async function getCSFloatInspectData(
   marketHashName: string,
 ): Promise<CSFloatInspectData | null> {
   const apiKey = process.env.CSFLOAT_API_KEY;
   if (!apiKey) return null;
 
-  const cached = memCache.get(marketHashName);
-  if (cached && cached.expires > Date.now()) return cached.data;
+  const cacheKey = `csfloat:${marketHashName}`;
+
+  // Check Redis cache — persists across all serverless invocations
+  const cached = await redis.get<CSFloatInspectData>(cacheKey);
+  if (cached) return cached;
 
   try {
     const res = await fetch(
@@ -26,13 +27,13 @@ export async function getCSFloatInspectData(
     );
 
     if (res.status === 429) {
-      console.warn("[CSFloat] Rate limited, serving stale for:", marketHashName);
-      return cached?.data ?? null;
+      console.warn("[CSFloat] Rate limited for:", marketHashName);
+      return null;
     }
 
     if (!res.ok) {
       console.warn("[CSFloat] Non-OK:", res.status, "for:", marketHashName);
-      return cached?.data ?? null;
+      return null;
     }
 
     const json = await res.json();
@@ -44,10 +45,10 @@ export async function getCSFloatInspectData(
       wear_name: listing?.item?.wear_name ?? null,
     };
 
-    memCache.set(marketHashName, { data, expires: Date.now() + CACHE_TTL_MS });
+    await redis.set(cacheKey, data, { ex: CACHE_TTL_SECONDS });
     return data;
   } catch (err) {
     console.error("[CSFloat] Fetch error:", err);
-    return cached?.data ?? null;
+    return null;
   }
 }
