@@ -66,7 +66,7 @@ Counter-Strike skins are traded on a large number of third-party marketplaces in
 - **URL**: `https://api.skinport.com/v1/items?app_id=730&currency=USD`
 - No API key required. Rate-limited to 8 requests / 5 minutes — acceptable because results are cached in-memory for **1 hour**.
 - Returns every tradeable skin on Skinport with `min_price`, `median_price`, `quantity`, and a direct `item_page` link.
-- Converted to a `Map<market_hash_name, item>` for O(1) lookups when rendering skin pages.
+- Converted to a `Map<market_hash_name, item>`.
 
 ### 3. Per-Item Pricing Fallback — Steam Community Market
 - **URL**: `https://steamcommunity.com/market/priceoverview/?appid=730&currency=1&market_hash_name={hash}`
